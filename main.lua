@@ -144,6 +144,10 @@ function love.touchpressed( id, x, y, dx, dy, pressure )
 						m.setPosition(g.getWidth()/2, g.getHeight()/2)
 					end
 			end
+
+			if inventory_window == true then
+				inventory_buttonpressed(x, y)
+			end
 		end
 	end
 end

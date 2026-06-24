@@ -63,6 +63,8 @@ function map_create_objects()
                 table.insert(objects, {type = "model", src = Model(wall, x, y, 16, 16, true)})
             elseif map[earlyMap][y][x] == 4 then
                 table.insert(objects, {type = "model", src = Model(grass, x, y, 16, 16)})
+            elseif map[earlyMap][y][x] == 5 then
+                table.insert(objects, {type = "model", src = Model(tree2, x, y, 64, 64, true)})
             end
         end
     end

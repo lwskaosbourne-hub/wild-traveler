@@ -33,6 +33,17 @@ function Model:update(dt)
     end
 end
 
+function Model:draw_shadow()
+    for i = 0, self.frames do
+        if model_shadow_position < 0 then
+            g.setColor(0,0,0, 0.1+(model_shadow_position*0.05))
+        else
+            g.setColor(0,0,0, 0.1-(model_shadow_position*0.05))
+        end
+        g.draw(self.image, self.quad[i], self.x+model_shadow_render[i].dx, self.y+model_shadow_render[i].dy, 0, 1, 1, self.width/2, self.height/2)
+    end
+end
+
 function Model:draw(camera_rad)
     for i = 0, self.frames do
         g.setColor(self.color)

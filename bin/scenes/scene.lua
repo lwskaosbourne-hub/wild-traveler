@@ -13,6 +13,9 @@ Player = require 'bin/scenes/game/entities/player'
 require 'bin/scenes/game/inventory_window'
 require 'bin/scenes/game/map'
 
+-- Enable/Disable Shadows (0 -> 'disabled', 1 -> 'enabled'):
+shadows = 1
+
 function scene_load()
 	-- Camera creation/configures:
 	cam = gamera.new(0, 0, g.getWidth(), g.getHeight())
@@ -26,7 +29,9 @@ function scene_load()
 
 	inventory_set()
 
+	-- Models textures:
 	tree = g.newImage("src/models/tree.png")
+	tree2 = g.newImage("src/models/tree2.png")
 	wall = g.newImage("src/models/brickWall.png")
 	grass = g.newImage("src/models/grass.png")
 
@@ -39,9 +44,13 @@ function scene_load()
 	map_create_objects()
 
 	model_render = {}
+	model_shadow_render = {}
+	model_shadow_position = 1
+	model_shadow_angle = 45
 	max_models_render = 64
 	for i = 0, max_models_render do
 		model_render[i] = {dx = 0, dy = 0}
+		model_shadow_render[i] = {dx = 0, dy = 0}
 	end
 
 	toutch_buttons = {}
@@ -68,9 +77,22 @@ function scene_update(dt)
 
 		map_update(dt)
 
+		if k.isDown("up") then
+			model_shadow_position = model_shadow_position - 0.1
+		elseif k.isDown("down") then
+			model_shadow_position = model_shadow_position + 0.1
+		elseif k.isDown("left") then
+			model_shadow_angle = model_shadow_angle + 1
+		elseif k.isDown("right") then
+			model_shadow_angle = model_shadow_angle - 1
+		end
+
 		for i = 0, max_models_render do
 			model_render[i].dx = i * math.cos(cam:getAngle() - math.rad(90))
 			model_render[i].dy = i * math.sin(cam:getAngle() - math.rad(90))
+			
+			model_shadow_render[i].dx = (i * math.cos(math.rad(model_shadow_angle))) * model_shadow_position
+			model_shadow_render[i].dy = (i * math.sin(math.rad(model_shadow_angle))) * model_shadow_position
 		end
 
 		world:update(dt)
@@ -152,8 +174,17 @@ function scene_draw()
 		cam:draw(function(l,t,w,h)
 			water_draw()
 			map_draw(cam:getAngle())
+			if shadows == 1 then
+				for _, obj in ipairs(objects) do
+					if distanceFrom(obj.src.x, obj.src.y, cam:getPosition()) < 200/camera_distance+model_shadow_position then
+						if obj.type ~= "player" then
+							obj.src:draw_shadow()
+						end
+					end
+    			end
+			end
 			for _, obj in ipairs(objects) do
-				if distanceFrom(obj.src.x, obj.src.y, cam:getPosition()) < 180/camera_distance then
+				if distanceFrom(obj.src.x, obj.src.y, cam:getPosition()) < 200/camera_distance then
 					obj.src:draw(cam:getAngle())
 				end
     		end

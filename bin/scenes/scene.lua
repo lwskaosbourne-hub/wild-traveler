@@ -45,7 +45,8 @@ function scene_load()
 
 	model_render = {}
 	model_shadow_render = {}
-	model_shadow_position = 1
+	model_shadow_position = 0
+	model_shadow_destinyPosition = 0
 	model_shadow_angle = 45
 	max_models_render = 64
 	for i = 0, max_models_render do
@@ -65,6 +66,13 @@ function scene_load()
 
 	hp_icon = g.newImage("src/heart.png")
 	bag_icon = g.newImage("src/bag.png")
+
+	time = {
+		hour = 6,
+		hour_max = 23,
+		count = 0,
+		speed = 1
+	}
 end
 
 function scene_update(dt)
@@ -77,11 +85,29 @@ function scene_update(dt)
 
 		map_update(dt)
 
+		-- Day/Night process:
+		if time.count >= 1 then
+			if time.hour >= time.hour_max then
+				time.hour = 0
+			else
+				time.hour = time.hour + (dt*time.speed)
+			end
+			model_shadow_position = (time.hour-12)*12/24
+			time.count = 0
+		else
+			time.count = time.count + (dt*time.speed)
+		end
+			
+
 		if k.isDown("up") then
-			model_shadow_position = model_shadow_position - 0.1
+			time.speed = 10
 		elseif k.isDown("down") then
-			model_shadow_position = model_shadow_position + 0.1
-		elseif k.isDown("left") then
+			time.speed = 5
+		else
+			time.speed = 1
+		end
+			
+		if k.isDown("left") then
 			model_shadow_angle = model_shadow_angle + 1
 		elseif k.isDown("right") then
 			model_shadow_angle = model_shadow_angle - 1
@@ -200,6 +226,17 @@ function scene_draw()
 			g.setColor(1,1,1)
 			g.draw(bag_icon, g.getWidth() - ((bag_icon:getWidth()+2)*zoom), 2*zoom, 0, zoom, zoom)
 		end
+
+		-- Screen Color and Lights:
+        if model_shadow_position < 0 then
+            g.setColor(0,0,0, 0.1-(model_shadow_position*0.05))
+        else
+            g.setColor(0,0,0, 0.1+(model_shadow_position*0.05))
+        end
+		g.rectangle("fill", 0, 0, g.getWidth(), g.getHeight())
+
+		g.setColor(1,1,1)
+		g.print("Hour: "..time.hour.."/"..time.hour_max, zoom, zoom*10, 0, zoom, zoom)
 
 		for i = 0, 5 do
 			g.setColor(1,1,1)

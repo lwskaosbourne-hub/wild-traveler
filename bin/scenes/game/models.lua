@@ -36,9 +36,9 @@ end
 function Model:draw_shadow()
     for i = 0, self.frames do
         if model_shadow_position < 0 then
-            g.setColor(0,0,0, 0.1+(model_shadow_position*0.05))
+            g.setColor(0,0,0, 0.1+(model_shadow_position*0.03))
         else
-            g.setColor(0,0,0, 0.1-(model_shadow_position*0.05))
+            g.setColor(0,0,0, 0.1-(model_shadow_position*0.03))
         end
         g.draw(self.image, self.quad[i], self.x+model_shadow_render[i].dx, self.y+model_shadow_render[i].dy, 0, 1, 1, self.width/2, self.height/2)
     end

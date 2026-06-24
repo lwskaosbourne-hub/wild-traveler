@@ -5,6 +5,8 @@ m = love.mouse
 a = love.audio
 phy = love.physics
 
+version = "Alpha 0.0.2"
+
 -- The type of dispositive version ("pc" or "android")
 dispositive = "pc"
 
@@ -48,7 +50,7 @@ function love.draw()
 	scene_draw()
 
 	g.setColor(1,1,1)
-	g.print("Alpha 0.0.1 | FPS: "..love.timer.getFPS(), g.getWidth() - zoom*60, g.getHeight() - zoom*10, 0, zoom/1.5, zoom/1.5)
+	g.print(version.." | FPS: "..love.timer.getFPS(), g.getWidth() - zoom*60, g.getHeight() - zoom*10, 0, zoom/1.5, zoom/1.5)
 
 	if dev_gui == true then
 		g.print("Graphics zoom: "..zoom, zoom*5, zoom*10, 0, zoom/2, zoom/2)

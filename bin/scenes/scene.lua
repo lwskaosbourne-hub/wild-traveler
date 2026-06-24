@@ -68,11 +68,13 @@ function scene_load()
 	bag_icon = g.newImage("src/bag.png")
 
 	time = {
-		hour = 6,
+		hour = 12,
 		hour_max = 23,
 		count = 0,
 		speed = 1
 	}
+
+	day_light = 0
 end
 
 function scene_update(dt)
@@ -92,10 +94,24 @@ function scene_update(dt)
 			else
 				time.hour = time.hour + (dt*time.speed)
 			end
-			model_shadow_position = (time.hour-12)*12/24
 			time.count = 0
 		else
 			time.count = time.count + (dt*time.speed)
+		end
+
+		model_shadow_position = (time.hour-12)*12/24
+		if time.hour >= 1 and time.hour < 12 then
+			-- Manhã:
+			day_light = 0.5 - (time.hour*0.5/12)
+		elseif time.hour >= 12 and time.hour < 13 then
+			-- Meio-dia:
+			day_light = 0
+		elseif time.hour >= 0 and time.hour < 1 then
+			-- Meia-noite:
+			day_light = 0.5
+		else
+			-- Tarde/Noite:
+			day_light = ((time.hour-12)*0.5/12)
 		end
 			
 
@@ -228,15 +244,11 @@ function scene_draw()
 		end
 
 		-- Screen Color and Lights:
-        if model_shadow_position < 0 then
-            g.setColor(0,0,0, 0.1-(model_shadow_position*0.05))
-        else
-            g.setColor(0,0,0, 0.1+(model_shadow_position*0.05))
-        end
+        g.setColor(0,0,0, day_light)
 		g.rectangle("fill", 0, 0, g.getWidth(), g.getHeight())
 
-		g.setColor(1,1,1)
-		g.print("Hour: "..time.hour.."/"..time.hour_max, zoom, zoom*10, 0, zoom, zoom)
+		--g.setColor(1,1,1)
+		--g.print("Hour: "..time.hour.."/"..time.hour_max .. " / "..day_light, zoom, zoom*10, 0, zoom, zoom)
 
 		for i = 0, 5 do
 			g.setColor(1,1,1)

@@ -195,6 +195,20 @@ function gamera:toWorld(x,y)
   return x + self.x, y + self.y
 end
 
+function gamera:toWorldX(x, y)
+  local scale, sin, cos = self.scale, self.sin, self.cos
+  x,y = (x - self.w2 - self.l) / scale, (y - self.h2 - self.t) / scale
+  x,y = cos*x - sin*y, sin*x + cos*y
+  return x + self.x
+end
+
+function gamera:toWorldY(x, y)
+  local scale, sin, cos = self.scale, self.sin, self.cos
+  x,y = (x - self.w2 - self.l) / scale, (y - self.h2 - self.t) / scale
+  x,y = cos*x - sin*y, sin*x + cos*y
+  return y + self.y
+end
+
 function gamera:toScreen(x,y)
   local scale, sin, cos = self.scale, self.sin, self.cos
   x,y = x - self.x, y - self.y

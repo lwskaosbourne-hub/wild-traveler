@@ -25,7 +25,7 @@ function inventory_set()
     inventory_buttons.equip.w = inventory_buttons.equip.img:getWidth()*inventory_window_size
     inventory_buttons.equip.h = inventory_buttons.equip.img:getHeight()*inventory_window_size
 
-    for i = 1, player[1].inventory.max do
+    for i = 1, player[player_id].inventory.max do
         local boxes_count = 0
 
         if i >= 11 and i <= 20 then boxes_count = 1
@@ -62,14 +62,14 @@ function inventory_buttonpressed(x, y, key)
         if x >= inventory_buttons.equip.x and x <= inventory_buttons.equip.x + inventory_buttons.equip.w and
         y >= inventory_buttons.equip.y and y <= inventory_buttons.equip.y + inventory_buttons.equip.h then
             -- Equip/use item by the selected_box ID:
-            if selected_box > 0 and player[1].inventory.items[selected_box].id > 0 and items[player[1].inventory.items[selected_box].id].type == "equipment" then
+            if selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and items[player[player_id].inventory.items[selected_box].id].type == "equipment" then
                 -- Equipments:
-                if player[1].item_equiped == selected_box then
-                    player[1].item_equiped = 0
+                if player[player_id].item_equiped == selected_box then
+                    player[player_id].item_equiped = 0
                 else
-                    player[1].item_equiped = selected_box
+                    player[player_id].item_equiped = selected_box
                 end
-            elseif selected_box > 0 and player[1].inventory.items[selected_box].id > 0 and items[player[1].inventory.items[selected_box].id].type == "potion" then
+            elseif selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and items[player[player_id].inventory.items[selected_box].id].type == "potion" then
                 -- Potions:
             end
         end

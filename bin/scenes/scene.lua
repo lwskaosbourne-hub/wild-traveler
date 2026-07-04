@@ -1,6 +1,8 @@
 -- Scene init:
 scene = "game"
 
+player_id = 1
+
 -- Physics:
 world = phy.newWorld(0, 0, true)
 
@@ -36,7 +38,7 @@ function scene_load()
 	grass = g.newImage("src/models/grass.png")
 
 	objects = {}
-	objects[1] = {type = "player", src = player[1], id = 1}
+	objects[1] = {type = "player", src = player[player_id], id = player_id}
 	--objects[2] = {type = "model", src = Model("tree", 3, 3, 64, 64)} -- o modelo recebe: o nome do modelo, a posição x, a posição y, largura e altura
 	--objects[3] = {type = "model", src = Model("tree", 1, 1, 64, 64)} -- aqui eu coloquei apenas uma variável a mais para mudar a cor dos modelos e distinguir
 	--objects[4] = {type = "model", src = Model("flowers", 5, 5, 16, 16)}
@@ -80,8 +82,8 @@ end
 function scene_update(dt)
 	if scene == "start" then
 	elseif scene == "game" then
-		player[1]:update(dt, cam:getAngle())
-		cam:setPosition(player[1]:getPosition())
+		player[player_id]:update(dt, cam:getAngle())
+		cam:setPosition(player[player_id]:getPosition())
 
 		inventory_update(dt)
 
@@ -225,6 +227,12 @@ function scene_draw()
 					end
     			end
 			end
+			if relativeMode == false then
+				local x = get_x(get_coord_x(cam:toWorldX(m.getX(), m.getY()))) - (tileSize/2)
+				local y = get_y(get_coord_y(cam:toWorldY(m.getX(), m.getY()))) - (tileSize/2)
+				g.setColor(1,0,0,0.5)
+				g.rectangle("line", x, y, tileSize, tileSize)
+			end
 			for _, obj in ipairs(objects) do
 				if distanceFrom(obj.src.x, obj.src.y, cam:getPosition()) < 200/camera_distance then
 					obj.src:draw(cam:getAngle())
@@ -269,13 +277,13 @@ function scene_keypressed(key)
 	if key == "tab" then
 		if inventory_window == true then
 			inventory_window = false
-			player[1].movementsBlocked = false
+			player[player_id].movementsBlocked = false
 			relativeMode = true
 			m.setRelativeMode(relativeMode)
 		else
 			selected_box = 0
 			inventory_window = true
-			player[1].movementsBlocked = true
+			player[player_id].movementsBlocked = true
 			relativeMode = false
 			m.setRelativeMode(relativeMode)
 			m.setPosition(g.getWidth()/2, g.getHeight()/2)

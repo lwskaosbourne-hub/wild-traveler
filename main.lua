@@ -55,7 +55,7 @@ function love.draw()
 	if dev_gui == true then
 		g.print("Graphics zoom: "..zoom, zoom*5, zoom*10, 0, zoom/2, zoom/2)
 		g.print("Camera distance: "..camera_distance, zoom*5, zoom*15, 0, zoom/2, zoom/2)
-		g.print("Player position (X, Y): "..get_coord_x(player[1].bodyPhy:getX())..", "..get_coord_y(player[1].bodyPhy:getY()), zoom*5, zoom*15, 0, zoom/2, zoom/2)
+		g.print("Player position (X, Y): "..get_coord_x(player[player_id].bodyPhy:getX())..", "..get_coord_y(player[player_id].bodyPhy:getY()), zoom*5, zoom*20, 0, zoom/2, zoom/2)
 	end
 end
 
@@ -98,7 +98,7 @@ function love.mousemoved(x, y, dx, dy)
 	if scene == "game" then
 		if relativeMode == true then
 			if dispositive == "pc" then
-				if player[1].movementsBlocked == false then
+				if player[player_id].movementsBlocked == false then
 					cam:setAngle(cam:getAngle()+(dx*love.timer.getDelta()/10))
 				end
 			end
@@ -118,7 +118,7 @@ function love.touchmoved(id, x, y, dx, dy, pressure)
 	if scene == "game" then
 		if relativeMode == true then
 			if dispositive == "android" and x > g.getWidth()/2 then
-				if player[1].movementsBlocked == false then
+				if player[player_id].movementsBlocked == false then
 					cam:setAngle(cam:getAngle()+(dx*love.timer.getDelta()/10))
 				end
 			end
@@ -134,13 +134,13 @@ function love.touchpressed( id, x, y, dx, dy, pressure )
 				y >= 2*zoom and y <= (2*zoom) + (bag_icon:getHeight()*zoom) then
 					if inventory_window == true then
 						inventory_window = false
-						player[1].movementsBlocked = false
+						player[player_id].movementsBlocked = false
 						relativeMode = true
 						m.setRelativeMode(relativeMode)
 					else
 						selected_box = 0
 						inventory_window = true
-						player[1].movementsBlocked = true
+						player[player_id].movementsBlocked = true
 						relativeMode = false
 						m.setRelativeMode(relativeMode)
 						m.setPosition(g.getWidth()/2, g.getHeight()/2)

@@ -41,9 +41,6 @@ end
 
 function love.update(dt)
 	scene_update(dt)
-	--zoom = (g.getHeight()/(450/3))
-	--cam:setWindow(100, 0, g.getWidth(), g.getHeight())
-	--cam:setScale(zoom)
 end
 
 function love.draw()

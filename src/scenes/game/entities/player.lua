@@ -4,6 +4,10 @@ local Player = Object:extend()
 local shadow = g.newImage("assets/shadow.png")
 
 function Player:new(x, y, map, sprite, body_id, eyes_id)
+    self.hp_max = 20
+    self.hp = self.hp_max/2
+    self.energy_max = 20
+    self.energy = self.energy_max
     self.x = get_x(x)
     self.y = get_y(y)
     self.w = 16

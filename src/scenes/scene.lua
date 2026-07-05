@@ -14,6 +14,7 @@ require 'src/scenes/game/items'
 Player = require 'src/scenes/game/entities/player'
 require 'src/scenes/game/inventory_window'
 require 'src/scenes/game/map'
+require 'src/scenes/game/hud'
 
 -- Enable/Disable Shadows (0 -> 'disabled', 1 -> 'enabled'):
 shadows = 1
@@ -27,7 +28,7 @@ function scene_load()
 	cam:setPosition(worldW/2, worldH/2)
 
 	player = {}
-	player[1] = Player(50, 20, 0, "cat", 1, 1)
+	player[1] = Player(50, 20, 0, "cat", 2, 1)
 
 	inventory_set()
 
@@ -71,7 +72,7 @@ function scene_load()
 
 	time = {
 		hour = 12,
-		hour_max = 23,
+		hour_max = 23.99,
 		count = 0,
 		speed = 1
 	}
@@ -94,7 +95,7 @@ function scene_update(dt)
 
 		-- Day/Night process:
 		if time.count >= 1 then
-			if time.hour >= time.hour_max then
+			if time.hour > time.hour_max then
 				time.hour = 0
 			else
 				time.hour = time.hour + (dt*time.speed)
@@ -261,10 +262,7 @@ function scene_draw()
 		--g.setColor(1,1,1)
 		--g.print("Hour: "..time.hour.."/"..time.hour_max .. " / "..day_light, zoom, zoom*10, 0, zoom, zoom)
 
-		for i = 0, 5 do
-			g.setColor(1,1,1)
-			g.draw(hp_icon, (i * (hp_icon:getWidth() + 1) + 2)*zoom, zoom*2, 0, zoom, zoom)
-		end
+		draw_hud()
 
 		if inventory_window == true then
 			inventory_draw()

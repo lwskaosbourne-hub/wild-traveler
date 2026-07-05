@@ -1,4 +1,4 @@
-local Object = require "bin/classic"
+local Object = require "lib/classic"
 local Model = Object:extend()
 
 function Model:new(image, x, y, w, h, collision, color)

@@ -6,14 +6,14 @@ player_id = 1
 -- Physics:
 world = phy.newWorld(0, 0, true)
 
-gamera = require 'bin/scenes/game/gamera'
-require 'bin/danim'
-Sprite = require 'bin/scenes/game/sprites'
-Model = require 'bin/scenes/game/models'
-require 'bin/scenes/game/items'
-Player = require 'bin/scenes/game/entities/player'
-require 'bin/scenes/game/inventory_window'
-require 'bin/scenes/game/map'
+gamera = require 'lib/gamera'
+require 'lib/danim'
+Sprite = require 'src/scenes/game/sprites'
+Model = require 'src/scenes/game/models'
+require 'src/scenes/game/items'
+Player = require 'src/scenes/game/entities/player'
+require 'src/scenes/game/inventory_window'
+require 'src/scenes/game/map'
 
 -- Enable/Disable Shadows (0 -> 'disabled', 1 -> 'enabled'):
 shadows = 1
@@ -32,10 +32,10 @@ function scene_load()
 	inventory_set()
 
 	-- Models textures:
-	tree = g.newImage("src/models/tree.png")
-	tree2 = g.newImage("src/models/tree2.png")
-	wall = g.newImage("src/models/brickWall.png")
-	grass = g.newImage("src/models/grass.png")
+	tree = g.newImage("assets/models/tree.png")
+	tree2 = g.newImage("assets/models/tree2.png")
+	wall = g.newImage("assets/models/brickWall.png")
+	grass = g.newImage("assets/models/grass.png")
 
 	objects = {}
 	objects[1] = {type = "player", src = player[player_id], id = player_id}
@@ -66,8 +66,8 @@ function scene_load()
 	toutch_buttons.movement.y = g.getHeight() - (zoom*toutch_buttons.movement.size+10)
 	toutch_buttons.movement.rad = zoom*toutch_buttons.movement.size
 
-	hp_icon = g.newImage("src/heart.png")
-	bag_icon = g.newImage("src/bag.png")
+	hp_icon = g.newImage("assets/heart.png")
+	bag_icon = g.newImage("assets/bag.png")
 
 	time = {
 		hour = 12,
@@ -77,6 +77,9 @@ function scene_load()
 	}
 
 	day_light = 0
+
+	local atk_image = g.newImage("assets/attack.png")
+	danim:new("player_attack", atk_image, 6, 1)
 end
 
 function scene_update(dt)

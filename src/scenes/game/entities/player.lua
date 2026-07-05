@@ -1,7 +1,7 @@
-local Object = require "bin/classic"
+local Object = require "lib/classic"
 local Player = Object:extend()
 
-local shadow = g.newImage("src/shadow.png")
+local shadow = g.newImage("assets/shadow.png")
 
 function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.x = get_x(x)
@@ -17,8 +17,8 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.body_id = body_id
     self.eyes_id = eyes_id
     self.sprite = sprite
-    self.body = Sprite("player", "src/sprites/" .. sprite .. "/body" .. body_id .. ".png", 4, 8)
-    self.eyes = Sprite("player", "src/sprites/" .. sprite .. "/eyes" .. eyes_id .. ".png", 4, 8)
+    self.body = Sprite("player", "assets/sprites/" .. sprite .. "/body" .. body_id .. ".png", 4, 8)
+    self.eyes = Sprite("player", "assets/sprites/" .. sprite .. "/eyes" .. eyes_id .. ".png", 4, 8)
     self.state = 0
     self.movementsBlocked = false
     self.bodyPhy = love.physics.newBody(world, self.x, self.y, "dynamic")
@@ -36,6 +36,7 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.inventory.items[2] = {id = 2}
     self.inventory.items[3] = {id = 3}
     self.item_equiped = 2 -- ID of the item equiped
+    self.attack = false
 end
 
 function Player:getMap()
@@ -94,7 +95,7 @@ function Player:update(dt, camera_rad)
             self.rad = camera_rad + toutch_buttons.movement.angle + math.rad(90)
             self.standCount = 0
             self.eyes:setX(0)
-            self.eyes:setTexture("src/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
+            self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
         end
         
         if k.isDown("w") or k.isDown("s") or k.isDown("a") or k.isDown("d") or toutch_buttons.movement.is_pressed == true then
@@ -108,7 +109,7 @@ function Player:update(dt, camera_rad)
             self.body:anim(self.speed/5, dt)
             self.eyes:setX(self.body.index_x/self.body.frame_w)
         else
-            self.eyes:setTexture("src/sprites/" .. self.sprite .. "/eyesAnim" .. self.eyes_id .. ".png")
+            self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyesAnim" .. self.eyes_id .. ".png")
             self.body:setX(0)
             if self.standCount >= 10 then
                 if self.eyes.index_x >= self.eyes.frame_w*self.eyes.frames_x - self.eyes.frame_w then
@@ -122,6 +123,17 @@ function Player:update(dt, camera_rad)
                 self.standCount = self.standCount + (dt*3)
             end
         end
+
+        if self.attack == true then
+            if danim:getFrame("player_attack") < 5 then
+                danim:update("player_attack", 30, dt)
+                self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
+                self.body:setX(3)
+                self.eyes:setX(3)
+            else
+                self.attack = false
+            end
+        end
     end
 end
 
@@ -129,7 +141,10 @@ function Player:keypressed(key)
     if key == "w" or key == "s" or key == "a" or key == "d" then
         self.standCount = 0
         self.eyes:setX(0)
-        self.eyes:setTexture("src/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
+        self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
+    end
+    if key == "e" then
+        self.attack = true
     end
 end
 
@@ -161,8 +176,12 @@ function Player:draw(camera_rad)
         g.rectangle("line", get_x(get_coord_x(self.bodyPhy:getX())) - (tileSize/2), get_y(get_coord_y(self.bodyPhy:getY())) - (tileSize/2), tileSize, tileSize)
     end
 
+    if self.attack == true then
+        danim:draw("player_attack", self.bodyPhy:getX(), self.bodyPhy:getY(), self.rad, 1, 1, {1,1,1})
+    end
+
     if self.body:get_frame_y() >= 2 * 16 and self.body:get_frame_y() <= 6 *16 then
-        if self.is_swiming == false then
+        if self.is_swiming == false and self.attack == false then
             self:draw_weapon(camera_rad)
         end
     end
@@ -173,9 +192,16 @@ function Player:draw(camera_rad)
     self.eyes:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad)
 
     if self.body:get_frame_y() >= 0 * 16 and self.body:get_frame_y() <= 1 *16 or self.body:get_frame_y() == 7 * 16 then
-        if self.is_swiming == false then
+        if self.is_swiming == false and self.attack == false then
             self:draw_weapon(camera_rad)
         end
+    end
+end
+
+function Player:atk()
+    if self.attack == false then
+        danim:setFrame("player_attack", 0)
+        self.attack = true
     end
 end
 

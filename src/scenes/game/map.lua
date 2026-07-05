@@ -2,12 +2,12 @@ map = {}
 
 tileSize = 16
 
-require "bin/scenes/game/maps/map_0"
+require "src/scenes/game/maps/map_0"
 
-local water_image = g.newImage("src/water.png")
+local water_image = g.newImage("assets/water.png")
 danim:new("water", water_image, 16, 1)
 
-tile_image = g.newImage("src/tiles.png")
+tile_image = g.newImage("assets/tiles.png")
 local tileCount = 0
 tile = {}
 
@@ -75,7 +75,7 @@ function map_update(dt)
     danim:update("swim", 5, dt)
 end
 
-local swim_image = g.newImage("src/swiming.png")
+local swim_image = g.newImage("assets/swiming.png")
 danim:new("swim", swim_image, 4, 1)
 
 function map_draw(camera_rad)

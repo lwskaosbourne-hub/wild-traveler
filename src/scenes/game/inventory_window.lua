@@ -3,12 +3,12 @@ inventory_window_x = g.getWidth()/2
 inventory_window_y = g.getHeight()/2
 
 inventory_buttons = {
-    equip = {x = 0, y = 0, w = 0, h = 0, img = g.newImage("src/inventory_button.png")}
+    equip = {x = 0, y = 0, w = 0, h = 0, img = g.newImage("assets/inventory_button.png")}
 }
 
-local base_img = g.newImage("src/inventory_window.png")
-local back_img = g.newImage("src/inventory_window_back.png")
-local items_base_img = g.newImage("src/inventory_window_itemsBase.png")
+local base_img = g.newImage("assets/inventory_window.png")
+local back_img = g.newImage("assets/inventory_window_back.png")
+local items_base_img = g.newImage("assets/inventory_window_itemsBase.png")
 
 local selected_box = 0
 local boxes = {}

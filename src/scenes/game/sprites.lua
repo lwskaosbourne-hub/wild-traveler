@@ -1,4 +1,4 @@
-local Object = require "bin/classic"
+local Object = require "lib/classic"
 local Sprite = Object:extend()
 
 function Sprite:new(name, texture, frames_x, frames_y)

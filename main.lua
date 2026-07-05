@@ -18,8 +18,8 @@ font:setLineHeight( font:getLineHeight()*2 )
 g.setFont(font)
 
 -- Requires:
-require 'bin/danim'
-require 'bin/scenes/scene'
+require 'lib/danim'
+require 'src/scenes/scene'
 
 function distanceFrom(x1,y1,x2,y2) return math.sqrt((x2 - x1) ^ 2 + (y2 - y1) ^ 2) end
 
@@ -110,6 +110,10 @@ function love.mousepressed(x, y, key)
 	if scene == "game" then
 		if inventory_window == true then
 			inventory_buttonpressed(x, y, key)
+		else
+			if key == 1 then
+				player[player_id]:atk()
+			end
 		end
 	end
 end

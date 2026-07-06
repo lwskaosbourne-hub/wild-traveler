@@ -1,8 +1,27 @@
 map = {}
 
-tileSize = 16
+maps_total = 1
 
-require "src/scenes/game/maps/map_0"
+for m = 1, maps_total do
+    local load_map = require("src/scenes/game/maps/map_"..m)
+
+    map[m] = {}
+
+    local count = 1
+
+    for i = 1, load_map.height do
+        map[m][i] = {}
+    end
+
+    for i = 1, #load_map.layers[1].data do
+        if i == load_map.width*count + 1 then
+            count = count + 1
+        end
+        map[m][count][i - (load_map.width*(count-1))] = load_map.layers[1].data[i]
+    end
+end
+
+tileSize = 16
 
 local water_image = g.newImage("assets/water.png")
 danim:new("water", water_image, 16, 1)
@@ -17,9 +36,7 @@ for t = 1, (tile_image:getWidth()/tileSize) * (tile_image:getHeight()/tileSize) 
     tile[t] = {quad = g.newQuad((t-((tile_image:getWidth()/tileSize)*tileCount))*tileSize-tileSize, tileCount*tileSize, tileSize, tileSize, tile_image:getDimensions())}
 end
 
---tile[19] = {quad = g.newQuad(0, 0, tileSize, tileSize, tile_image:getDimensions())}
-
-earlyMap = 0
+earlyMap = 1
 
 worldW, worldH = (#map[earlyMap][1] * tileSize)*8, (#map[earlyMap] * tileSize)*8
 
@@ -27,30 +44,22 @@ function get_x(x) return (worldW/2)-(#map[earlyMap][1]*tileSize/2)+(tileSize*x) 
 function get_y(y) return (worldH/2)-(#map[earlyMap]*tileSize/2)+(tileSize*y) - (tileSize/2) end
 
 function get_coord_x(pixel_x)
-    -- Pegamos a largura do mapa (quantidade de colunas)
     local mapCols = #map[earlyMap][1]
     
-    -- Agrupamos todo o cálculo de "offset" (deslocamento) que sua função original faz
     local base_offset = (worldW / 2) - (mapCols * tileSize / 2) - (tileSize)
     
-    -- Subtraímos o offset do pixel atual e dividimos pelo tamanho do tile
     local grid_x = (pixel_x - base_offset) / tileSize
     
-    -- Arredondamos para baixo
     return math.floor(grid_x)
 end
 
 function get_coord_y(pixel_y)
-    -- Pegamos a largura do mapa (quantidade de colunas)
     local mapCols = #map[earlyMap]
     
-    -- Agrupamos todo o cálculo de "offset" (deslocamento) que sua função original faz
     local base_offset = (worldW / 2) - (mapCols * tileSize / 2) - (tileSize)
     
-    -- Subtraímos o offset do pixel atual e dividimos pelo tamanho do tile
     local grid_y = (pixel_y - base_offset) / tileSize
     
-    -- Arredondamos para baixo
     return math.floor(grid_y)
 end
 
@@ -58,13 +67,15 @@ function map_create_objects()
     for x = 1, #map[earlyMap][1] do
         for y = 1, #map[earlyMap] do
             if map[earlyMap][y][x] == 2 then
-                table.insert(objects, {type = "model", src = Model(tree, x, y, 64, 64, true)})
+                table.insert(objects, {type = "model", src = Model(montain, x, y, 16, 16, true)})
             elseif map[earlyMap][y][x] == 3 then
                 table.insert(objects, {type = "model", src = Model(wall, x, y, 16, 16, true)})
             elseif map[earlyMap][y][x] == 4 then
                 table.insert(objects, {type = "model", src = Model(grass, x, y, 16, 16)})
             elseif map[earlyMap][y][x] == 5 then
                 table.insert(objects, {type = "model", src = Model(tree2, x, y, 64, 64, true)})
+            elseif map[earlyMap][y][x] == 6 then
+                table.insert(objects, {type = "model", src = Model(tree, x, y, 64, 64, true)})
             end
         end
     end

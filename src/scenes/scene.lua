@@ -6,6 +6,17 @@ player_id = 1
 -- Physics:
 world = phy.newWorld(0, 0, true)
 
+model_render = {}
+	model_shadow_render = {}
+	model_shadow_position = 0
+	model_shadow_destinyPosition = 0
+	model_shadow_angle = 45
+	max_models_render = 64
+	for i = 0, max_models_render do
+		model_render[i] = {dx = 0, dy = 0}
+		model_shadow_render[i] = {dx = 0, dy = 0}
+	end
+	
 gamera = require 'lib/gamera'
 require 'lib/danim'
 Sprite = require 'src/scenes/game/sprites'
@@ -15,9 +26,13 @@ Player = require 'src/scenes/game/entities/player'
 require 'src/scenes/game/inventory_window'
 require 'src/scenes/game/map'
 require 'src/scenes/game/hud'
+require 'src/scenes/game/render'
+light_system = require "src/scenes/game/light_system"
+light_system.load(g.getWidth(), g.getHeight())
+require "src/scenes/game/day_cicle"
 
 -- Enable/Disable Shadows (0 -> 'disabled', 1 -> 'enabled'):
-shadows = 1
+shadows = 0
 
 function scene_load()
 	-- Camera creation/configures:
@@ -32,7 +47,13 @@ function scene_load()
 
 	inventory_set()
 
+	renderLoad()
+
+	luz_do_jogador = light_system.addLight(player[player_id].bodyPhy:getX(), player[player_id].bodyPhy:getY(), 64, {1, 1, 1}, 1)
+	light_system.addLight(get_x(50), get_y(30), 100, {0.5, 0.3, 0}, 1)
+	
 	-- Models textures:
+	montain = g.newImage("assets/models/montain.png")
 	tree = g.newImage("assets/models/tree.png")
 	tree2 = g.newImage("assets/models/tree2.png")
 	wall = g.newImage("assets/models/brickWall.png")
@@ -45,17 +66,6 @@ function scene_load()
 	--objects[4] = {type = "model", src = Model("flowers", 5, 5, 16, 16)}
 
 	map_create_objects()
-
-	model_render = {}
-	model_shadow_render = {}
-	model_shadow_position = 0
-	model_shadow_destinyPosition = 0
-	model_shadow_angle = 45
-	max_models_render = 64
-	for i = 0, max_models_render do
-		model_render[i] = {dx = 0, dy = 0}
-		model_shadow_render[i] = {dx = 0, dy = 0}
-	end
 
 	toutch_buttons = {}
 	toutch_buttons.movement = {id = nil, dist = 1, is_pressed = false, 
@@ -71,7 +81,7 @@ function scene_load()
 	bag_icon = g.newImage("assets/bag.png")
 
 	time = {
-		hour = 12,
+		hour = 18,
 		hour_max = 23.99,
 		count = 0,
 		speed = 1
@@ -90,6 +100,8 @@ function scene_update(dt)
 		cam:setPosition(player[player_id]:getPosition())
 
 		inventory_update(dt)
+
+		luz_do_jogador.x, luz_do_jogador.y = player[player_id]:getPosition()
 
 		map_update(dt)
 
@@ -120,6 +132,8 @@ function scene_update(dt)
 			day_light = ((time.hour-12)*0.5/12)
 		end
 			
+		--light_system.setAmbientColor(0.05, 0.05, 0.15, 1)
+		updateDayNightCycle(time.hour)
 
 		if k.isDown("up") then
 			time.speed = 10
@@ -139,22 +153,11 @@ function scene_update(dt)
 			model_render[i].dx = i * math.cos(cam:getAngle() - math.rad(90))
 			model_render[i].dy = i * math.sin(cam:getAngle() - math.rad(90))
 			
-			model_shadow_render[i].dx = (i * math.cos(math.rad(model_shadow_angle))) * model_shadow_position
-			model_shadow_render[i].dy = (i * math.sin(math.rad(model_shadow_angle))) * model_shadow_position
+			--model_shadow_render[i].dx = (i * math.cos(math.rad(model_shadow_angle))) * model_shadow_position
+			--model_shadow_render[i].dy = (i * math.sin(math.rad(model_shadow_angle))) * model_shadow_position
 		end
 
 		world:update(dt)
-
-    	-- ALGORITMO DE ORDENAÇÃO 2.5D:
-    	table.sort(objects, function(a, b)
-        	-- Projetamos a posição X e Y de cada objeto no eixo de visão da câmera.
-        	-- Baseado no seu código de draw, esta fórmula calcula quem está mais "atrás" na tela:
-        	local depthA = -a.src.x * math.sin(cam:getAngle()) + a.src.y * math.cos(cam:getAngle())
-        	local depthB = -b.src.x * math.sin(cam:getAngle()) + b.src.y * math.cos(cam:getAngle())
-        
-        	-- Quem tiver a menor profundidade (mais longe da câmera) deve ser desenhado primeiro (fundo)
-        	return depthA < depthB
-    	end)
 
 		if dispositive == "android" then
 			-- Obtém uma lista com os IDs de todos os toques ativos na tela no frame atual
@@ -222,26 +225,13 @@ function scene_draw()
 		cam:draw(function(l,t,w,h)
 			water_draw()
 			map_draw(cam:getAngle())
-			if shadows == 1 then
-				for _, obj in ipairs(objects) do
-					if distanceFrom(obj.src.x, obj.src.y, cam:getPosition()) < 200/camera_distance+model_shadow_position then
-						if obj.type ~= "player" then
-							obj.src:draw_shadow()
-						end
-					end
-    			end
-			end
 			if relativeMode == false then
 				local x = get_x(get_coord_x(cam:toWorldX(m.getX(), m.getY()))) - (tileSize/2)
 				local y = get_y(get_coord_y(cam:toWorldY(m.getX(), m.getY()))) - (tileSize/2)
 				g.setColor(1,0,0,0.5)
 				g.rectangle("line", x, y, tileSize, tileSize)
 			end
-			for _, obj in ipairs(objects) do
-				if distanceFrom(obj.src.x, obj.src.y, cam:getPosition()) < 200/camera_distance then
-					obj.src:draw(cam:getAngle())
-				end
-    		end
+			renderScene(cam, objects)
 		end)
 
 		if dispositive == "android" then
@@ -256,8 +246,10 @@ function scene_draw()
 		end
 
 		-- Screen Color and Lights:
-        g.setColor(0,0,0, day_light)
-		g.rectangle("fill", 0, 0, g.getWidth(), g.getHeight())
+        --g.setColor(0,0,0, day_light)
+		--g.rectangle("fill", 0, 0, g.getWidth(), g.getHeight())
+		
+		light_system.draw(cam)
 
 		--g.setColor(1,1,1)
 		--g.print("Hour: "..time.hour.."/"..time.hour_max .. " / "..day_light, zoom, zoom*10, 0, zoom, zoom)

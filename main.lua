@@ -37,6 +37,8 @@ function love.load()
 	scene_load()
 
 	dev_gui = false
+
+	fullscreen = false
 end
 
 function love.update(dt)
@@ -67,6 +69,14 @@ function love.keypressed(key)
 				relativeMode = true
 				m.setRelativeMode(relativeMode)
 			end
+		end
+		if key == "f12" then
+			if fullscreen == false then
+				fullscreen = true
+			else
+				fullscreen = false
+			end
+			w.setFullscreen(fullscreen)
 		end
 	end
 
@@ -166,4 +176,6 @@ function love.resize(w, h)
 	inventory_window_x = g.getWidth()/2
 	inventory_window_y = g.getHeight()/2
 	inventory_set()
+	light_system.load(w, h)
+	renderLoad()
 end

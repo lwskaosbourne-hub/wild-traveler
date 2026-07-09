@@ -71,11 +71,11 @@ function map_create_objects()
             elseif map[earlyMap][y][x] == 3 then
                 table.insert(objects, {type = "model", src = Model(wall, x, y, 16, 16, true)})
             elseif map[earlyMap][y][x] == 4 then
-                table.insert(objects, {type = "model", src = Model(grass, x, y, 16, 16)})
+                table.insert(objects, {type = "grass", src = Model(grass, x, y, 16, 16)})
             elseif map[earlyMap][y][x] == 5 then
-                table.insert(objects, {type = "model", src = Model(tree2, x, y, 64, 64, true)})
+                table.insert(objects, {type = "tree", x = x, y = y, hp = 5, src = Model(tree2, x, y, 64, 64, true, {speed = 20})})
             elseif map[earlyMap][y][x] == 6 then
-                table.insert(objects, {type = "model", src = Model(tree, x, y, 64, 64, true)})
+                table.insert(objects, {type = "tree", x = x, y = y, hp = 5, src = Model(tree, x, y, 64, 64, true, {speed = 20})})
             end
         end
     end
@@ -98,6 +98,10 @@ function map_draw(camera_rad)
             g.draw(tile_image, tile[map[earlyMap][y][x]].quad, tx, ty, 0, 1, 1, tileSize/2, tileSize/2)
         end
     end
+end
+
+function change_map(map_id, x, y, tile_id)
+    map[map_id][y][x] = tile_id
 end
 
 function water_draw()

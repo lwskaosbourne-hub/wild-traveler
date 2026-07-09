@@ -6,7 +6,7 @@ function love.conf(t)
     t.window.height = 460                                       -- The window height (number)
     t.window.fullscreen = false                                 -- Enable fullscreen (boolean)
     t.window.resizable = true
-    t.window.vsync = 0
+    t.window.vsync = 1
     t.window.msaa = 0                                           -- The number of samples to use with multi-sampled antialiasing (number)
     t.window.title = "Wild Traveler"
 end

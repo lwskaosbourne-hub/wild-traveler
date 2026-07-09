@@ -52,9 +52,11 @@ function love.draw()
 	g.print(version.." | FPS: "..love.timer.getFPS(), g.getWidth() - zoom*60, g.getHeight() - zoom*10, 0, zoom/1.5, zoom/1.5)
 
 	if dev_gui == true then
-		g.print("Graphics zoom: "..zoom, zoom*5, zoom*10, 0, zoom/2, zoom/2)
-		g.print("Camera distance: "..camera_distance, zoom*5, zoom*15, 0, zoom/2, zoom/2)
-		g.print("Player position (X, Y): "..get_coord_x(player[player_id].bodyPhy:getX())..", "..get_coord_y(player[player_id].bodyPhy:getY()), zoom*5, zoom*20, 0, zoom/2, zoom/2)
+		g.print("Graphics zoom: "..zoom, zoom*5, zoom*50, 0, zoom/2, zoom/2)
+		g.print("Camera distance: "..camera_distance, zoom*5, zoom*55, 0, zoom/2, zoom/2)
+		g.print("Player position (X, Y): "..get_coord_x(player[player_id].bodyPhy:getX())..", "..get_coord_y(player[player_id].bodyPhy:getY()), zoom*5, zoom*60, 0, zoom/2, zoom/2)
+		g.print("Total objects: "..#objects, zoom*5, zoom*65, 0, zoom/2, zoom/2)
+		g.print("Visible objects: "..visible_n, zoom*5, zoom*70, 0, zoom/2, zoom/2)
 	end
 end
 
@@ -70,14 +72,14 @@ function love.keypressed(key)
 				m.setRelativeMode(relativeMode)
 			end
 		end
-		if key == "f12" then
-			if fullscreen == false then
-				fullscreen = true
-			else
-				fullscreen = false
-			end
-			w.setFullscreen(fullscreen)
+	end
+	if key == "f12" then
+		if fullscreen == false then
+			fullscreen = true
+		else
+			fullscreen = false
 		end
+		w.setFullscreen(fullscreen)
 	end
 
 	if key == 'f1' then
@@ -98,6 +100,7 @@ function love.wheelmoved(x, y)
 			camera_distance = camera_distance - 0.01
 			cam:setScale(zoom*camera_distance)
 		end
+		renderLoad()
 	end
 end
 
@@ -120,6 +123,7 @@ function love.mousepressed(x, y, key)
 		else
 			if key == 1 then
 				player[player_id]:atk()
+				objects_update()
 			end
 		end
 	end

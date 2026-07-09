@@ -145,6 +145,14 @@ function gamera:getPosition()
   return self.x, self.y
 end
 
+function gamera:getX()
+  return self.x
+end
+
+function gamera:getY()
+  return self.y
+end
+
 function gamera:getScale()
   return self.scale
 end

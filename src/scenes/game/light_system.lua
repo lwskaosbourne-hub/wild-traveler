@@ -21,14 +21,11 @@ function light_system.addLight(x, y, radius, color, intensity)
 end
 
 function light_system.draw(cam)
-    -- 1. Foca no Canvas e pinta a escuridão
     g.setCanvas(light_system.canvas)
     g.clear(light_system.ambient_color)
     
-    -- 2. Prepara para ADICIONAR luz
     g.setBlendMode("add", "alphamultiply")
     
-    -- 3. Criamos a função que o Gamera vai usar para desenhar as luzes
     local desenhar_luzes = function()
         for i = 1, #light_system.lights do
             local luz = light_system.lights[i]
@@ -36,30 +33,23 @@ function light_system.draw(cam)
             g.setColor(luz.color[1], luz.color[2], luz.color[3], luz.intensity * 0.5)
             local scale = luz.radius / light_system.image:getWidth()
             
-            -- Desenhamos a luz na coordenada real (luz.x, luz.y). 
-            -- O Gamera vai calcular o zoom e a posição da câmera por nós.
             g.draw(light_system.image, luz.x, luz.y, 0, scale, scale, light_system.image:getWidth()/2, light_system.image:getHeight()/2)
         end
     end
     
-    -- 4. Se a câmera Gamera foi passada, usamos ela. Se não, desenhamos normal.
     if cam then
         cam:draw(desenhar_luzes)
     else
         desenhar_luzes()
     end
     
-    -- 5. Tira o foco do Canvas
     g.setCanvas()
     
-    -- 6. Aplica a escuridão + luzes sobre a tela
     g.setBlendMode("multiply", "premultiplied")
     g.setColor(1, 1, 1, 1)
     
-    -- O Canvas em si NUNCA entra na câmera. Ele é colado direto na tela do jogador (0, 0).
     g.draw(light_system.canvas, 0, 0)
     
-    -- 7. Reseta pro Blend Mode padrão
     g.setBlendMode("alpha")
 end
 

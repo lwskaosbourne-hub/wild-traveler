@@ -23,7 +23,7 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.sprite = sprite
     self.body = Sprite("player", "assets/sprites/" .. sprite .. "/body" .. body_id .. ".png", 4, 8)
     self.eyes = Sprite("player", "assets/sprites/" .. sprite .. "/eyes" .. eyes_id .. ".png", 4, 8)
-    self.state = 0
+    self.state = 0 -- 0 = Static, 1 = Walking, 2 = Attack
     self.movementsBlocked = false
     self.bodyPhy = love.physics.newBody(world, self.x, self.y, "dynamic")
     self.shape = love.physics.newCircleShape(6)
@@ -40,7 +40,7 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.inventory.items[2] = {id = 2}
     self.inventory.items[3] = {id = 3}
     self.item_equiped = 2 -- ID of the item equiped
-    self.attack = false
+    self.interactive_point = {x = 0, y = 0}
 end
 
 function Player:getMap()
@@ -72,7 +72,7 @@ function Player:update(dt, camera_rad)
     end
 
     -- Movements:
-    if self.state == 0 and self.movementsBlocked == false then
+    if self.movementsBlocked == false then
         if k.isDown("w") then
             if k.isDown("a") then
                 self.rad = camera_rad - math.rad(45)
@@ -103,16 +103,23 @@ function Player:update(dt, camera_rad)
         end
         
         if k.isDown("w") or k.isDown("s") or k.isDown("a") or k.isDown("d") or toutch_buttons.movement.is_pressed == true then
-            self.dx = self.speed*math.cos(self.rad - math.rad(90))
-            self.dy = self.speed*math.sin(self.rad - math.rad(90))
+            self.state = 1
+            local run_spd = 0
+            if k.isDown("lshift") then run_spd = 20 end
+            self.dx = (self.speed+run_spd)*math.cos(self.rad - math.rad(90))
+            self.dy = (self.speed+run_spd)*math.sin(self.rad - math.rad(90))
             self.bodyPhy:setPosition(self.bodyPhy:getX() + (self.dx* toutch_buttons.movement.dist)*dt, self.bodyPhy:getY() + self.dy*dt)
             self.x = self.bodyPhy:getX()
             self.y = self.bodyPhy:getY()
             self.bodyPhy:setAwake( true )
 
-            self.body:anim(self.speed/5, dt)
+            self.interactive_point.x = self.x + (10*math.cos(self.rad - math.rad(90)))
+            self.interactive_point.y = self.y + (10*math.sin(self.rad - math.rad(90)))
+
+            self.body:anim((self.speed+run_spd)/5, dt)
             self.eyes:setX(self.body.index_x/self.body.frame_w)
         else
+            self.state = 0
             self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyesAnim" .. self.eyes_id .. ".png")
             self.body:setX(0)
             if self.standCount >= 10 then
@@ -127,16 +134,17 @@ function Player:update(dt, camera_rad)
                 self.standCount = self.standCount + (dt*3)
             end
         end
+    end
 
-        if self.attack == true then
-            if danim:getFrame("player_attack") < 5 then
-                danim:update("player_attack", 30, dt)
-                self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
-                self.body:setX(3)
-                self.eyes:setX(3)
-            else
-                self.attack = false
-            end
+    if self.state == 2 then
+        if danim:getFrame("player_attack") < 5 then
+            danim:update("player_attack", 30, dt)
+            self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
+            self.body:setX(3)
+            self.eyes:setX(3)
+        else
+            self.movementsBlocked = false
+            self.state = 0
         end
     end
 end
@@ -146,9 +154,6 @@ function Player:keypressed(key)
         self.standCount = 0
         self.eyes:setX(0)
         self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
-    end
-    if key == "e" then
-        self.attack = true
     end
 end
 
@@ -176,16 +181,19 @@ end
 
 function Player:draw(camera_rad)
     if dev_gui == true then
-        g.setColor(1,0,0,0.5)
-        g.rectangle("line", get_x(get_coord_x(self.bodyPhy:getX())) - (tileSize/2), get_y(get_coord_y(self.bodyPhy:getY())) - (tileSize/2), tileSize, tileSize)
+        g.setColor(1,1,1,0.5)
+        g.rectangle("line", get_x(get_coord_x(self.interactive_point.x)) - (tileSize/2), get_y(get_coord_y(self.interactive_point.y)) - (tileSize/2), tileSize, tileSize)
+
+        g.setColor(0,0,0)
+        g.circle("fill", self.interactive_point.x, self.interactive_point.y, 0.5)
     end
 
-    if self.attack == true then
+    if self.state == 2 then
         danim:draw("player_attack", self.bodyPhy:getX(), self.bodyPhy:getY(), self.rad, 1, 1, {1,1,1})
     end
 
     if self.body:get_frame_y() >= 2 * 16 and self.body:get_frame_y() <= 6 *16 then
-        if self.is_swiming == false and self.attack == false then
+        if self.is_swiming == false and self.state ~= 2 then
             self:draw_weapon(camera_rad)
         end
     end
@@ -196,16 +204,17 @@ function Player:draw(camera_rad)
     self.eyes:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad)
 
     if self.body:get_frame_y() >= 0 * 16 and self.body:get_frame_y() <= 1 *16 or self.body:get_frame_y() == 7 * 16 then
-        if self.is_swiming == false and self.attack == false then
+        if self.is_swiming == false and self.state ~= 2 then
             self:draw_weapon(camera_rad)
         end
     end
 end
 
 function Player:atk()
-    if self.attack == false then
+    if self.state ~= 2 and self.movementsBlocked == false then
         danim:setFrame("player_attack", 0)
-        self.attack = true
+        self.movementsBlocked = true
+        self.state = 2
     end
 end
 

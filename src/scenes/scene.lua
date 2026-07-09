@@ -30,6 +30,7 @@ require 'src/scenes/game/render'
 light_system = require "src/scenes/game/light_system"
 light_system.load(g.getWidth(), g.getHeight())
 require "src/scenes/game/day_cicle"
+objects = require "src/scenes/game/objects"
 
 -- Enable/Disable Shadows (0 -> 'disabled', 1 -> 'enabled'):
 shadows = 0
@@ -43,14 +44,14 @@ function scene_load()
 	cam:setPosition(worldW/2, worldH/2)
 
 	player = {}
-	player[1] = Player(50, 20, 0, "cat", 2, 1)
+	player[1] = Player(50, 20, 1, "cat", 2, 1)
 
 	inventory_set()
 
 	renderLoad()
 
-	luz_do_jogador = light_system.addLight(player[player_id].bodyPhy:getX(), player[player_id].bodyPhy:getY(), 64, {1, 1, 1}, 1)
-	light_system.addLight(get_x(50), get_y(30), 100, {0.5, 0.3, 0}, 1)
+	luz_do_jogador = light_system.addLight(player[player_id].bodyPhy:getX(), player[player_id].bodyPhy:getY(), 100, {1, 1, 1}, 1)
+	--light_system.addLight(get_x(50), get_y(30), 100, {0.5, 0.3, 0}, 1)
 	
 	-- Models textures:
 	montain = g.newImage("assets/models/montain.png")
@@ -59,12 +60,7 @@ function scene_load()
 	wall = g.newImage("assets/models/brickWall.png")
 	grass = g.newImage("assets/models/grass.png")
 
-	objects = {}
-	objects[1] = {type = "player", src = player[player_id], id = player_id}
-	--objects[2] = {type = "model", src = Model("tree", 3, 3, 64, 64)} -- o modelo recebe: o nome do modelo, a posição x, a posição y, largura e altura
-	--objects[3] = {type = "model", src = Model("tree", 1, 1, 64, 64)} -- aqui eu coloquei apenas uma variável a mais para mudar a cor dos modelos e distinguir
-	--objects[4] = {type = "model", src = Model("flowers", 5, 5, 16, 16)}
-
+	objects_ini()
 	map_create_objects()
 
 	toutch_buttons = {}
@@ -81,7 +77,7 @@ function scene_load()
 	bag_icon = g.newImage("assets/bag.png")
 
 	time = {
-		hour = 18,
+		hour = 6,
 		hour_max = 23.99,
 		count = 0,
 		speed = 1
@@ -96,6 +92,11 @@ end
 function scene_update(dt)
 	if scene == "start" then
 	elseif scene == "game" then
+    	for o = 1, #objects do
+			if objects[o].type ~= "player" then
+    	    	objects[o].src:update(dt)
+			end
+    	end
 		player[player_id]:update(dt, cam:getAngle())
 		cam:setPosition(player[player_id]:getPosition())
 
@@ -104,6 +105,10 @@ function scene_update(dt)
 		luz_do_jogador.x, luz_do_jogador.y = player[player_id]:getPosition()
 
 		map_update(dt)
+
+		renderUpdate(cam, objects)
+
+		--objects_update(dt)
 
 		-- Day/Night process:
 		if time.count >= 1 then
@@ -116,23 +121,7 @@ function scene_update(dt)
 		else
 			time.count = time.count + (dt*time.speed)
 		end
-
-		model_shadow_position = (time.hour-12)*12/24
-		if time.hour >= 1 and time.hour < 12 then
-			-- Manhã:
-			day_light = 0.5 - (time.hour*0.5/12)
-		elseif time.hour >= 12 and time.hour < 13 then
-			-- Meio-dia:
-			day_light = 0
-		elseif time.hour >= 0 and time.hour < 1 then
-			-- Meia-noite:
-			day_light = 0.5
-		else
-			-- Tarde/Noite:
-			day_light = ((time.hour-12)*0.5/12)
-		end
-			
-		--light_system.setAmbientColor(0.05, 0.05, 0.15, 1)
+		
 		updateDayNightCycle(time.hour)
 
 		if k.isDown("up") then

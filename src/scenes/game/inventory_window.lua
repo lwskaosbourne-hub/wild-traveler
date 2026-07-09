@@ -92,36 +92,36 @@ function inventory_draw()
         end
         g.draw(items_base_img, boxes[i].x, boxes[i].y, 0, inventory_window_size, inventory_window_size, items_base_img:getWidth()/2, items_base_img:getHeight()/2)
         
-        if player[1].inventory.items[i].id > 0 then
+        if player[player_id].inventory.items[i].id > 0 then
             g.setColor(1,1,1)
-            g.draw(items_img, items[player[1].inventory.items[i].id].quad, 
+            g.draw(items_img, items[player[player_id].inventory.items[i].id].quad, 
                 boxes[i].x, boxes[i].y, 0, inventory_window_size, inventory_window_size, 4, 4)
         end
 
-        if i == player[1].item_equiped then
+        if i == player[player_id].item_equiped then
             g.setColor(1,1,1)
             g.print("E", boxes[i].x + (inventory_window_size*2), boxes[i].y + (inventory_window_size), 0, inventory_window_size/2, inventory_window_size/2)
         end
     end
 
     -- Item Info:
-    if selected_box > 0 and player[1].inventory.items[selected_box].id > 0 then
+    if selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 then
         local x = inventory_window_x - (inventory_window_size*68)
         local y = inventory_window_y + (inventory_window_size*29)
         g.setColor(1,0,0)
-        g.print(items[player[1].inventory.items[selected_box].id].name .. ":", x, y, 0, inventory_window_size/2, inventory_window_size/2)
+        g.print(items[player[player_id].inventory.items[selected_box].id].name .. ":", x, y, 0, inventory_window_size/2, inventory_window_size/2)
     end
 
 	g.setColor(1,1,1)
     g.draw(inventory_buttons.equip.img, inventory_buttons.equip.x, inventory_buttons.equip.y, 0, inventory_window_size, inventory_window_size)
-    if selected_box > 0 and player[1].inventory.items[selected_box].id > 0 and items[player[1].inventory.items[selected_box].id].type == "equipment" then
+    if selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and items[player[player_id].inventory.items[selected_box].id].type == "equipment" then
         g.setColor(0,0,0)
         if player[1].item_equiped == selected_box then
             g.print("UNEQUIP", inventory_buttons.equip.x + inventory_window_size, inventory_buttons.equip.y + (inventory_window_size*1.5), 0, inventory_window_size/1.8, inventory_window_size/1.8)
         else
             g.print("EQUIP", inventory_buttons.equip.x + (inventory_window_size*2.5), inventory_buttons.equip.y + inventory_window_size, 0, inventory_window_size/1.5, inventory_window_size/1.5)
         end
-    elseif selected_box > 0 and player[1].inventory.items[selected_box].id > 0 and items[player[1].inventory.items[selected_box].id].type == "potion" then
+    elseif selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and items[player[player_id].inventory.items[selected_box].id].type == "potion" then
         g.setColor(0,0,0)
         g.print("USE", inventory_buttons.equip.x + (inventory_window_size*4.5), inventory_buttons.equip.y + inventory_window_size, 0, inventory_window_size/1.5, inventory_window_size/1.5)
     else

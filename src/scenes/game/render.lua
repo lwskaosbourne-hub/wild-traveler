@@ -13,8 +13,8 @@ function renderUpdate(cam, objects)
     for i = 1, #objects do
         local obj = objects[i]
         
-        local dx = obj.src.x - cam_x
-        local dy = obj.src.y - cam_y
+        local dx = obj.x - cam_x
+        local dy = obj.y - cam_y
         local distance_sq = (dx * dx) + (dy * dy) 
         
         local obj_margin = 64 
@@ -31,8 +31,8 @@ function renderUpdate(cam, objects)
         local sin_cam = math.sin(angle)
         local cos_cam = math.cos(angle)
         
-        local depthA = -a.src.x * sin_cam + a.src.y * cos_cam
-        local depthB = -b.src.x * sin_cam + b.src.y * cos_cam
+        local depthA = -a.x * sin_cam + a.y * cos_cam
+        local depthB = -b.x * sin_cam + b.y * cos_cam
         
         return depthA < depthB
     end)
@@ -40,8 +40,23 @@ function renderUpdate(cam, objects)
     visible_n = visible_count
 end
 
+local tree_shadow = g.newImage("assets/tree_shadow.png")
+
 function renderScene(cam)
     for i = 1, #visible_objects do
-        visible_objects[i].src:draw(cam:getAngle())
+        if visible_objects[i].type == "player" then
+            visible_objects[i].src:draw(cam:getAngle())
+        else
+            if visible_objects[i].type == "tree" then
+                if time.hour >= 6 and time.hour < 12 then
+                    g.setColor(1,1,1, (time.hour-6)/6)
+                    g.draw(tree_shadow, visible_objects[i].x, visible_objects[i].y, 0, 1, 1, tree_shadow:getWidth()/2, tree_shadow:getHeight()/2)
+                elseif time.hour >= 12 and time.hour < 18 then
+                    g.setColor(1,1,1, 1-(time.hour-12)/6)
+                    g.draw(tree_shadow, visible_objects[i].x, visible_objects[i].y, 0, 1, 1, tree_shadow:getWidth()/2, tree_shadow:getHeight()/2)
+                end
+            end
+            visible_objects[i].src:draw(visible_objects[i].x, visible_objects[i].y, visible_objects[i].z, visible_objects[i].rad)
+        end
     end
 end

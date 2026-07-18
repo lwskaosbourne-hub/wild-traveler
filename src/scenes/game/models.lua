@@ -1,10 +1,8 @@
 local Object = require "lib/classic"
 local Model = Object:extend()
 
-function Model:new(image, x, y, w, h, collision, anim, color)
+function Model:new(image, w, h, anim, color)
     self.image = image
-    self.x = get_x(x)
-    self.y = get_y(y)
     self.width = w
     self.height = h
     self.frames = (self.image:getWidth()/w) - 1
@@ -18,17 +16,6 @@ function Model:new(image, x, y, w, h, collision, anim, color)
         self.anim_position = 0
         self.anim_repeat = 1
         self.anim_repeat_max = 1
-    end
-
-    if collision then
-        self.collision = collision
-        if collision == true then
-            self.body = love.physics.newBody(world, self.x, self.y, "static")
-            self.shape = love.physics.newRectangleShape(16,16)
-            self.fixture = love.physics.newFixture(self.body, self.shape)
-        end
-    else
-        self.collision = false
     end
 
     for i = 0, self.frames do
@@ -70,11 +57,13 @@ function Model:update(dt)
 end
 
 function Model:animate(qnt)
-    self.anim_count = 0
-    self.anim_position = 0
-    self.anim_repeat = 1
-    self.anim_repeat_max = qnt
-    self.anim_switch = true
+    if self.anim_switch == false then
+        self.anim_count = 0
+        self.anim_position = 0
+        self.anim_repeat = 1
+        self.anim_repeat_max = qnt
+        self.anim_switch = true
+    end
 end
 
 function Model:draw_shadow()
@@ -88,10 +77,10 @@ function Model:draw_shadow()
     end
 end
 
-function Model:draw(camera_rad)
+function Model:draw(x, y, z, rad)
     g.setColor(self.color)
     for i = 0, self.frames do
-        g.draw(self.image, self.quad[i], self.x+model_render[i].dx, self.y+model_render[i].dy, 0, 1, 1, self.width/2, self.height/2)
+        g.draw(self.image, self.quad[i], x+model_render[i+z].dx, y+model_render[i+z].dy, rad, 1, 1, self.width/2, self.height/2)
     end
 end
 
@@ -99,5 +88,7 @@ function Model:getX() return self.x end
 function Model:getY() return self.y end
 function Model:getWidth() return self.width end
 function Model:getHeight() return self.height end
+
+function Model:getDimensions() return self.width, self.height end
 
 return Model

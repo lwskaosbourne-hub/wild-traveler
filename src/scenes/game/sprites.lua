@@ -42,8 +42,8 @@ function Sprite:anim(speed, dt)
     end
 end
 
-function Sprite:draw(x, y, camera_rad)
-    g.setColor(1,1,1)
+function Sprite:draw(x, y, camera_rad, alpha)
+    g.setColor(1,1,1,alpha or 1)
     g.draw(self.texture, self.quad, x, y, camera_rad, 1, 1, self.frame_w/2, self.frame_h/self.y_divide)
 end
 

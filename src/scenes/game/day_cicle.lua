@@ -1,7 +1,3 @@
-local function lerp(a, b, t)
-    return a + (b - a) * t
-end
-
 local day_cycle = {
     {hour = 0,  color = {0.05, 0.05, 0.15, 1}}, -- Meia-noite (Azul muito escuro)
     {hour = 5,  color = {0.05, 0.05, 0.20, 1}}, -- Fim da madrugada

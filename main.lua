@@ -5,7 +5,7 @@ m = love.mouse
 a = love.audio
 phy = love.physics
 
-version = "Alpha 0.0.2"
+version = "Alpha 0.1.1"
 
 -- The type of dispositive version ("pc" or "android")
 dispositive = "pc"
@@ -16,6 +16,14 @@ g.setDefaultFilter("nearest", "nearest")
 local font = g.newFont(7, "mono")
 font:setLineHeight( font:getLineHeight()*2 )
 g.setFont(font)
+
+function get_rgb(r, g, b)
+	return (r/255), (g/255), (b/255)
+end
+
+function lerp(a, b, t)
+    return a + (b - a) * t
+end
 
 -- Requires:
 require 'lib/danim'
@@ -61,18 +69,8 @@ function love.draw()
 end
 
 function love.keypressed(key)
-	if scene == "game" then
-		scene_keypressed(key)
-		if key == 'escape' then
-			if relativeMode == true then
-				relativeMode = false
-				m.setRelativeMode(relativeMode)
-			else
-				relativeMode = true
-				m.setRelativeMode(relativeMode)
-			end
-		end
-	end
+	scene_keypressed(key)
+
 	if key == "f12" then
 		if fullscreen == false then
 			fullscreen = true
@@ -123,7 +121,7 @@ function love.mousepressed(x, y, key)
 		else
 			if key == 1 then
 				player[player_id]:atk()
-				objects_update()
+				objects_interact()
 			end
 		end
 	end
@@ -172,14 +170,16 @@ end
 function love.resize(w, h)
 	-- The zoom needs to be changed when the window resizes:
 	zoom = (h/(450/3))
-	cam:setWindow(0, 0, w, h)
-	cam:setScale(zoom*camera_distance)
-	toutch_buttons.movement.x = zoom*toutch_buttons.movement.size+10
-	toutch_buttons.movement.y = g.getHeight() - (zoom*toutch_buttons.movement.size+10)
-	toutch_buttons.movement.rad = zoom*toutch_buttons.movement.size
-	inventory_window_x = g.getWidth()/2
-	inventory_window_y = g.getHeight()/2
-	inventory_set()
-	light_system.load(w, h)
-	renderLoad()
+	if scene == "game" then
+		cam:setWindow(0, 0, w, h)
+		cam:setScale(zoom*camera_distance)
+		toutch_buttons.movement.x = zoom*toutch_buttons.movement.size+10
+		toutch_buttons.movement.y = g.getHeight() - (zoom*toutch_buttons.movement.size+10)
+		toutch_buttons.movement.rad = zoom*toutch_buttons.movement.size
+		inventory_window_x = g.getWidth()/2
+		inventory_window_y = g.getHeight()/2
+		inventory_set()
+		light_system.load(w, h)
+		renderLoad()
+	end
 end

@@ -4,10 +4,10 @@ local Player = Object:extend()
 local shadow = g.newImage("assets/shadow.png")
 
 function Player:new(x, y, map, sprite, body_id, eyes_id)
-    self.hp_max = 20
+    self.hp_max = 1000
     self.hp = self.hp_max/2
-    self.energy_max = 20
-    self.energy = self.energy_max
+    self.energy_max = 1000
+    self.energy = self.energy_max/2
     self.x = get_x(x)
     self.y = get_y(y)
     self.w = 16
@@ -41,6 +41,13 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.inventory.items[3] = {id = 3}
     self.item_equiped = 2 -- ID of the item equiped
     self.interactive_point = {x = 0, y = 0}
+
+    self.light = light_system.addLight(self.bodyPhy:getX(), self.bodyPhy:getY(), 100, {1, 1, 1}, 0)
+    self.light_dir = 0
+    self.light_speed = 10
+    self.light_switch = false
+
+    self.alpha = 1
 end
 
 function Player:getMap()
@@ -49,6 +56,24 @@ end
 
 function Player:update(dt, camera_rad)
     --self.sprite:update(dt, camera_rad)
+
+    self.light.x, self.light.y = self.bodyPhy:getPosition()
+
+    if self.light_switch == true then
+        if self.light_dir == 0 then
+            if self.light.radius >= 120 then
+                self.light_dir = 1
+            else
+                self.light.radius = self.light.radius + (self.light_speed*dt)
+            end
+        else
+            if self.light.radius <= 100 then
+                self.light_dir = 0
+            else
+                self.light.radius = self.light.radius - (self.light_speed*dt)
+            end
+        end
+    end
 
     local cameraDeg = math.deg(camera_rad)
     local playerDeg = math.deg(self.rad)
@@ -59,7 +84,7 @@ function Player:update(dt, camera_rad)
     self.eyes:setY(math.floor((relativeAngle + 22.5) / 45) % 8)
 
     -- Swiming:
-    if map[earlyMap][get_coord_y(self.y)][get_coord_x(self.x)] >= 10 and map[earlyMap][get_coord_y(self.y)][get_coord_x(self.x)] <= 18 then
+    if map[earlyMap].grid[get_coord_y(self.y)][get_coord_x(self.x)] >= 10 and map[earlyMap].grid[get_coord_y(self.y)][get_coord_x(self.x)] <= 18 then
         self.body.y_divide = 1.6
         self.eyes.y_divide = 1.6
         self.is_swiming = true
@@ -113,6 +138,14 @@ function Player:update(dt, camera_rad)
             self.y = self.bodyPhy:getY()
             self.bodyPhy:setAwake( true )
 
+            if self.body.index_x == self.body.frame_w then
+                if k.isDown("lshift") then
+                    self.energy = self.energy - 0.2
+                else
+                    self.energy = self.energy - 0.1
+                end
+            end
+
             self.interactive_point.x = self.x + (10*math.cos(self.rad - math.rad(90)))
             self.interactive_point.y = self.y + (10*math.sin(self.rad - math.rad(90)))
 
@@ -138,7 +171,7 @@ function Player:update(dt, camera_rad)
 
     if self.state == 2 then
         if danim:getFrame("player_attack") < 5 then
-            danim:update("player_attack", 30, dt)
+            danim:update("player_attack", 20, dt)
             self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
             self.body:setX(3)
             self.eyes:setX(3)
@@ -155,6 +188,15 @@ function Player:keypressed(key)
         self.eyes:setX(0)
         self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
     end
+    if key == "q" then
+        if self.light_switch == true then
+            self.light.intensity = 0
+            self.light_switch = false
+        else
+            self.light.intensity = 1
+            self.light_switch = true
+        end
+    end
 end
 
 function Player:draw_weapon(camera_rad)
@@ -168,7 +210,7 @@ function Player:draw_weapon(camera_rad)
             dir = -1
             x = -2
         end
-        g.setColor(1,1,1)
+        g.setColor(1,1,1,self.alpha)
         if self.body:get_frame_x() == 0 or self.body:get_frame_x() == 32 then
             g.draw(items_img, items[self.inventory.items[self.item_equiped].id].quad, 
                 self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad-rotation, dir, 1, (8/2)+x, 9+y)
@@ -189,8 +231,11 @@ function Player:draw(camera_rad)
     end
 
     if self.state == 2 then
-        danim:draw("player_attack", self.bodyPhy:getX(), self.bodyPhy:getY(), self.rad, 1, 1, {1,1,1})
+        g.setColor(1,1,1,self.alpha)
+        danim:draw("player_attack", self.bodyPhy:getX(), self.bodyPhy:getY(), self.rad, 1, 1, {1,1,1,self.alpha})
     end
+
+    
 
     if self.body:get_frame_y() >= 2 * 16 and self.body:get_frame_y() <= 6 *16 then
         if self.is_swiming == false and self.state ~= 2 then
@@ -198,10 +243,10 @@ function Player:draw(camera_rad)
         end
     end
 
-    g.setColor(1,1,1)
+    g.setColor(1,1,1,self.alpha)
     g.draw(shadow, self.bodyPhy:getX(), self.bodyPhy:getY(), 0, 1, 1, shadow:getWidth()/2, shadow:getHeight()/2)
-    self.body:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad)
-    self.eyes:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad)
+    self.body:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad, self.alpha)
+    self.eyes:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad, self.alpha)
 
     if self.body:get_frame_y() >= 0 * 16 and self.body:get_frame_y() <= 1 *16 or self.body:get_frame_y() == 7 * 16 then
         if self.is_swiming == false and self.state ~= 2 then

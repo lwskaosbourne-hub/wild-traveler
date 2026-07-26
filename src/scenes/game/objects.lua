@@ -35,6 +35,16 @@ function new_object(src, x, y, z, t, rad, collision, light)
     end
 end
 
+function new_drop(iten_id, x, y, z)
+    local id = #objects + 1
+    objects[id] = {}
+    objects[id].type = "droped_iten"
+    objects[id].x = x
+    objects[id].y = y
+    objects[id].z = z
+    objects[id].src = DropedItens(iten_id, x, y, z)
+end
+
 function objects_ini()
     objects[1] = {type = "player", x = 0, y = 0, src = player[player_id], id = player_id}
 
@@ -42,6 +52,8 @@ function objects_ini()
 
     new_object(camp_fire, 50, 20, 0, "camp_fire", 0, true,
         light_system.addLight(get_x(50), get_y(20), 130, {1,0.5,0}, 1))
+
+    new_drop(4, get_x(48), get_y(18), 0)
 end
 
 local camp_fire_light_direction = 0
@@ -63,6 +75,15 @@ function objects_update(dt)
         if objects[i].type == "player" then
             objects[i].x = objects[i].src.bodyPhy:getX()
             objects[i].y = objects[i].src.bodyPhy:getY()
+        elseif objects[i].type == "droped_iten" then
+            if objects[i].src.player_get_iten == true then
+                player[objects[i].src.player_id_following]:addIten(objects[i].src.iten_id)
+                table.remove(objects, i)
+                return
+            else
+                objects[i].x = objects[i].src.x
+                objects[i].y = objects[i].src.y
+            end
         elseif objects[i].type == "cabin" then
             for p = 1, #player do
                 if time.hour >= 18 and time.hour <= 24 or time.hour >= 0 and time.hour <= 5.9 or player[p].enter_into_cabin == true then
@@ -118,6 +139,20 @@ function objects_interact()
                     player[i].interactive_point.y >= objects[o].y - 8 and 
                     player[i].interactive_point.y <= objects[o].y + 8 then
                         if objects[o].hp <= 0 then
+                            local wood_amount = math.random(3, 10)
+                            local apple_amount = math.random(0,5)
+                            for w = 1, wood_amount do
+                                local x = (objects[o].x - 32) + math.random(0, 64)
+                                local y = (objects[o].y - 32) + math.random(0, 64)
+                                new_drop(5, x, y, 32)
+                            end
+                            if apple_amount > 0 then
+                                for a = 1, apple_amount do
+                                    local x = (objects[o].x - 32) + math.random(0, 64)
+                                    local y = (objects[o].y - 32) + math.random(0, 64)
+                                    new_drop(4, x, y, 32)
+                                end
+                            end
                             objects[o].fixture:destroy()
                             objects[o].src:animate(1)
                             table.remove(objects, o)
@@ -135,5 +170,3 @@ function objects_interact()
         end
     end
 end
-
-return objects

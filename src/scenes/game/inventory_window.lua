@@ -91,6 +91,11 @@ function inventory_draw()
             g.setColor(1,1,1)
         end
         g.draw(items_base_img, boxes[i].x, boxes[i].y, 0, inventory_window_size, inventory_window_size, items_base_img:getWidth()/2, items_base_img:getHeight()/2)
+
+        if player[player_id].inventory.items[i].n > 1 then
+            g.setColor(0,0,0,0.5)
+            g.print(player[player_id].inventory.items[i].n, boxes[i].x + (inventory_window_size*2), boxes[i].y + (inventory_window_size), 0, inventory_window_size/2, inventory_window_size/2)
+        end
         
         if player[player_id].inventory.items[i].id > 0 then
             g.setColor(1,1,1)

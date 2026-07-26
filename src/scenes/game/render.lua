@@ -44,7 +44,7 @@ local tree_shadow = g.newImage("assets/tree_shadow.png")
 
 function renderScene(cam)
     for i = 1, #visible_objects do
-        if visible_objects[i].type == "player" then
+        if visible_objects[i].type == "player" or visible_objects[i].type == "droped_iten" then
             visible_objects[i].src:draw(cam:getAngle())
         else
             if visible_objects[i].type == "tree" then

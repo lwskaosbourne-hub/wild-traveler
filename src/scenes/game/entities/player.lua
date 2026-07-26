@@ -5,9 +5,9 @@ local shadow = g.newImage("assets/shadow.png")
 
 function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.hp_max = 1000
-    self.hp = self.hp_max/2
+    self.hp = self.hp_max
     self.energy_max = 1000
-    self.energy = self.energy_max/2
+    self.energy = self.energy_max
     self.x = get_x(x)
     self.y = get_y(y)
     self.w = 16
@@ -33,12 +33,13 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
         max = 30,
         items = {}
     }
+    self.inventory.empty_spaces = self.inventory.max - 3
     for i = 1, self.inventory.max do
-        self.inventory.items[i] = {id = 0}
+        self.inventory.items[i] = {id = 0, n = 1}
     end
-    self.inventory.items[1] = {id = 1}
-    self.inventory.items[2] = {id = 2}
-    self.inventory.items[3] = {id = 3}
+    self.inventory.items[1] = {id = 1, n = 1}
+    self.inventory.items[2] = {id = 2, n = 1}
+    self.inventory.items[3] = {id = 4, n = 1}
     self.item_equiped = 2 -- ID of the item equiped
     self.interactive_point = {x = 0, y = 0}
 
@@ -49,6 +50,29 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
 
     self.alpha = 1
     self.enter_into_cabin = false
+end
+
+function Player:addIten(id)
+    local last_space = 0
+    
+    for i = 1, self.inventory.max do
+        if self.inventory.items[i].id == id and self.inventory.items[i].n < items[id].maximum_coupling then
+            self.inventory.items[i].n = self.inventory.items[i].n + 1
+            if self.inventory.items[i].n == items[id].maximum_coupling then
+                self.inventory.empty_spaces = self.inventory.empty_spaces - 1
+            end
+            break
+        elseif last_space == 0 then
+            if self.inventory.items[i].id == 0 then last_space = i end
+        end
+
+        if i == self.inventory.max then
+            self.inventory.items[last_space].id = id
+            self.inventory.items[last_space].n = 1
+            self.inventory.empty_spaces = self.inventory.empty_spaces - 1
+            break
+        end
+    end
 end
 
 function Player:getMap()

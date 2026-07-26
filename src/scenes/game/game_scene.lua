@@ -14,6 +14,7 @@ require 'lib/danim'
 Sprite = require 'src/scenes/game/sprites'
 Model = require 'src/scenes/game/models'
 require 'src/scenes/game/items'
+DropedItens = require 'src/scenes/game/entities/droped_iten'
 Player = require 'src/scenes/game/entities/player'
 require 'src/scenes/game/inventory_window'
 require 'src/scenes/game/map'
@@ -22,7 +23,7 @@ require 'src/scenes/game/render'
 light_system = require "src/scenes/game/light_system"
 light_system.load(g.getWidth(), g.getHeight())
 require "src/scenes/game/day_cicle"
-objects = require "src/scenes/game/objects"
+require "src/scenes/game/objects"
 
 -- Enable/Disable Shadows (0 -> 'disabled', 1 -> 'enabled'):
 shadows = 0
@@ -67,7 +68,7 @@ function game_load()
 	bag_icon = g.newImage("assets/bag.png")
 
 	time = {
-		hour = 20,
+		hour = 12,
 		hour_max = 23.99,
 		count = 0,
 		speed = 0.5

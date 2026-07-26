@@ -48,6 +48,8 @@ function renderScene(cam)
             visible_objects[i].src:draw(cam:getAngle())
         else
             if visible_objects[i].type == "tree" then
+                g.setBlendMode("alpha", "premultiplied")
+
                 if time.hour >= 6 and time.hour < 12 then
                     g.setColor(1,1,1, (time.hour-6)/6)
                     g.draw(tree_shadow, visible_objects[i].x, visible_objects[i].y, 0, 1, 1, tree_shadow:getWidth()/2, tree_shadow:getHeight()/2)
@@ -55,6 +57,8 @@ function renderScene(cam)
                     g.setColor(1,1,1, 1-(time.hour-12)/6)
                     g.draw(tree_shadow, visible_objects[i].x, visible_objects[i].y, 0, 1, 1, tree_shadow:getWidth()/2, tree_shadow:getHeight()/2)
                 end
+
+                g.setBlendMode("alpha")
             end
             visible_objects[i].src:draw(visible_objects[i].x, visible_objects[i].y, visible_objects[i].z, visible_objects[i].rad)
         end

@@ -48,6 +48,7 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.light_switch = false
 
     self.alpha = 1
+    self.enter_into_cabin = false
 end
 
 function Player:getMap()
@@ -182,6 +183,21 @@ function Player:update(dt, camera_rad)
     end
 end
 
+function Player:moveFoward(dt, speed)
+    self.state = 1
+    local run_spd = 0
+    self.dx = (speed+run_spd)*math.cos(self.rad - math.rad(90))
+    self.dy = (speed+run_spd)*math.sin(self.rad - math.rad(90))
+    self.bodyPhy:setPosition(self.bodyPhy:getX() + (self.dx* toutch_buttons.movement.dist)*dt, self.bodyPhy:getY() + self.dy*dt)
+    self.x = self.bodyPhy:getX()
+    self.y = self.bodyPhy:getY()
+    self.bodyPhy:setAwake( true )
+    self.interactive_point.x = self.x + (10*math.cos(self.rad - math.rad(90)))
+    self.interactive_point.y = self.y + (10*math.sin(self.rad - math.rad(90)))
+    self.body:anim((speed+run_spd)/5, dt)
+    self.eyes:setX(self.body.index_x/self.body.frame_w)
+end
+
 function Player:keypressed(key)
     if key == "w" or key == "s" or key == "a" or key == "d" then
         self.standCount = 0
@@ -243,8 +259,10 @@ function Player:draw(camera_rad)
         end
     end
 
+    g.setBlendMode("alpha", "premultiplied")
     g.setColor(1,1,1,self.alpha)
     g.draw(shadow, self.bodyPhy:getX(), self.bodyPhy:getY(), 0, 1, 1, shadow:getWidth()/2, shadow:getHeight()/2)
+    g.setBlendMode("alpha")
     self.body:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad, self.alpha)
     self.eyes:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad, self.alpha)
 

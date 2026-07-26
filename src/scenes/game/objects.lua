@@ -41,34 +41,66 @@ function objects_ini()
     new_object(Model(g.newImage("assets/models/cabin.png"), 64, 64), 45, 20, 0, "cabin", 0, true)
 
     new_object(camp_fire, 50, 20, 0, "camp_fire", 0, true,
-        light_system.addLight(get_x(50), get_y(20), 150, {1,0.5,0}, 1))
+        light_system.addLight(get_x(50), get_y(20), 130, {1,0.5,0}, 1))
 end
+
+local camp_fire_light_direction = 0
+local camp_fire_light = 130
 
 function objects_update(dt)
     camp_fire:animate(1)
+    if camp_fire.anim_position == 0 then
+        camp_fire_light = 140
+    elseif camp_fire.anim_position == 1 then
+        camp_fire_light = 135
+    elseif camp_fire.anim_position == 2 then
+        camp_fire_light = 130
+    elseif camp_fire.anim_position == 3 then
+        camp_fire_light = 135
+    end
+
     for i = 1, #objects do
         if objects[i].type == "player" then
             objects[i].x = objects[i].src.bodyPhy:getX()
             objects[i].y = objects[i].src.bodyPhy:getY()
         elseif objects[i].type == "cabin" then
-            if time.hour >= 18 and time.hour <= 24 or time.hour >= 0 and time.hour <= 5.9 then
-                for p = 1, #player do
-                    if player[p].x <= objects[i].x + objects[i].src:getWidth()/2 - 4 and
-                        player[p].x >= objects[i].x - objects[i].src:getWidth()/2 + 4 and
-                        player[p].y <= objects[i].y + objects[i].src:getHeight()/2 - 4 and
-                        player[p].y >= objects[i].y - objects[i].src:getHeight()/2 + 4 then
-                            player[p].movementsBlocked = true
-                            fade = 1
-                            if fade_alpha >= 1 then
-                                fade = 0
-                                player[p].energy = player[p].energy_max
-                                player[p].hp = player[p].hp_max
-                                player[p].movementsBlocked = false
-                                time.hour = 6
+            for p = 1, #player do
+                if time.hour >= 18 and time.hour <= 24 or time.hour >= 0 and time.hour <= 5.9 or player[p].enter_into_cabin == true then
+                    if player[p].x <= objects[i].x + objects[i].src:getWidth()/2 and
+                        player[p].x >= objects[i].x - objects[i].src:getWidth()/2 and
+                        player[p].y <= objects[i].y + objects[i].src:getHeight()/2 and
+                        player[p].y >= objects[i].y - objects[i].src:getHeight()/2 then
+                            if player[p].enter_into_cabin == false then
+                                player[p].movementsBlocked = true
+                                if player[p].alpha <= 0 then
+                                    fade = 1
+                                    player[p].enter_into_cabin = true
+                                else
+                                    player[p]:moveFoward(dt, 10)
+                                    player[p].alpha = player[p].alpha - (5*dt)
+                                end
+                            else
+                                if fade_alpha >= 1 then
+                                    fade = 0
+                                    player[p].rad = player[p].rad - math.rad(180)
+                                    player[p].energy = player[p].energy_max
+                                    player[p].hp = player[p].hp_max
+                                    player[p].movementsBlocked = false
+                                    time.hour = 6
+                                elseif fade_alpha <= 0 then
+                                    if player[p].alpha >= 1 then
+                                        player[p].enter_into_cabin = false
+                                    else
+                                        player[p]:moveFoward(dt, 10)
+                                        player[p].alpha = player[p].alpha + (5*dt)
+                                    end
+                                end
                             end
                     end
                 end
             end
+        elseif objects[i].type == "camp_fire" then
+            objects[i].light.radius = camp_fire_light
         end
     end
 end

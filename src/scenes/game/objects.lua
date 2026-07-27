@@ -142,14 +142,14 @@ function objects_interact()
                             local wood_amount = math.random(3, 10)
                             local apple_amount = math.random(0,5)
                             for w = 1, wood_amount do
-                                local x = (objects[o].x - 32) + math.random(0, 64)
-                                local y = (objects[o].y - 32) + math.random(0, 64)
+                                local x = (objects[o].x - 16) + math.random(0, 32)
+                                local y = (objects[o].y - 16) + math.random(0, 32)
                                 new_drop(5, x, y, 32)
                             end
                             if apple_amount > 0 then
                                 for a = 1, apple_amount do
-                                    local x = (objects[o].x - 32) + math.random(0, 64)
-                                    local y = (objects[o].y - 32) + math.random(0, 64)
+                                    local x = (objects[o].x - 16) + math.random(0, 32)
+                                    local y = (objects[o].y - 16) + math.random(0, 32)
                                     new_drop(4, x, y, 32)
                                 end
                             end

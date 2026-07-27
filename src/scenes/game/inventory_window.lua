@@ -15,7 +15,7 @@ local boxes = {}
 
 function inventory_set()
     if dispositive == "pc" then
-        inventory_window_size = zoom*0.5
+        inventory_window_size = zoom*0.8
     elseif dispositive == "android" then
         inventory_window_size = zoom
     end
@@ -78,7 +78,7 @@ end
 
 function inventory_draw()
     -- Window base:
-    g.setColor(1,1,1, 0.8)
+    g.setColor(1,1,1, 0.5)
     g.draw(back_img, inventory_window_x, inventory_window_y, 0, inventory_window_size, inventory_window_size, back_img:getWidth()/2, back_img:getHeight()/2)
     g.setColor(1,1,1)
     g.draw(base_img, inventory_window_x, inventory_window_y, 0, inventory_window_size, inventory_window_size, base_img:getWidth()/2, base_img:getHeight()/2)
@@ -93,7 +93,7 @@ function inventory_draw()
         g.draw(items_base_img, boxes[i].x, boxes[i].y, 0, inventory_window_size, inventory_window_size, items_base_img:getWidth()/2, items_base_img:getHeight()/2)
 
         if player[player_id].inventory.items[i].n > 1 then
-            g.setColor(0,0,0,0.5)
+            g.setColor(1,1,1)
             g.print(player[player_id].inventory.items[i].n, boxes[i].x + (inventory_window_size*2), boxes[i].y + (inventory_window_size), 0, inventory_window_size/2, inventory_window_size/2)
         end
         
@@ -104,7 +104,7 @@ function inventory_draw()
         end
 
         if i == player[player_id].item_equiped then
-            g.setColor(1,1,1)
+            g.setColor(1,1,1,0.5)
             g.print("E", boxes[i].x + (inventory_window_size*2), boxes[i].y + (inventory_window_size), 0, inventory_window_size/2, inventory_window_size/2)
         end
     end

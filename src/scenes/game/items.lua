@@ -1,9 +1,8 @@
-items = {
-    {name = "Sword", type="equipment", class="sword", index_x = 1, index_y = 0, maximum_coupling = 1},
-    {name = "Exe", type="equipment", class="exe", index_x = 4, index_y = 0, maximum_coupling = 1},
-    {name = "Healt Potion", type="potion", class="heal", index_x = 0, index_y = 1, maximum_coupling = 99},
-    {name = "Apple", type="food", class="heal", index_x = 1, index_y = 1, maximum_coupling = 99},
-    {name = "Wood", type="material", class="wood", index_x = 2, index_y = 1, maximum_coupling = 99}
+items = {{name = "Sword",       type="equipment", class="sword", index_x = 1, index_y = 0, maximum_coupling = 1},
+        {name = "Exe",          type="equipment", class="exe",   index_x = 4, index_y = 0, maximum_coupling = 1},
+        {name = "Healt Potion", type="potion",    class="heal",  index_x = 0, index_y = 1, maximum_coupling = 99},
+        {name = "Apple",        type="food",      class="heal",  index_x = 1, index_y = 1, maximum_coupling = 99},
+        {name = "Wood",         type="material",  class="wood",  index_x = 2, index_y = 1, maximum_coupling = 99}
 }
 
 items[0] = {name = "Hand", type="equipment", class="punch", index_x = 0, index_y = 0, maximum_coupling = 1}

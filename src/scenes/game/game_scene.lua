@@ -68,7 +68,7 @@ function game_load()
 	bag_icon = g.newImage("assets/bag.png")
 
 	time = {
-		hour = 12,
+		hour = 15,
 		hour_max = 23.99,
 		count = 0,
 		speed = 0.5

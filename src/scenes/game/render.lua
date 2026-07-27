@@ -7,7 +7,6 @@ visible_n = 0
 
 function renderUpdate(cam, objects)
     local visible_count = 0
-    
     local cam_x, cam_y = cam:getPosition() 
     
     for i = 1, #objects do
@@ -26,11 +25,19 @@ function renderUpdate(cam, objects)
         end
     end
 
+    -- OTIMIZAÇÃO 2: Limpamos os resíduos do frame anterior. 
+    -- Isso garante que o table.sort não processe objetos invisíveis fantasmas.
+    for i = visible_count + 1, #visible_objects do
+        visible_objects[i] = nil
+    end
+
+    -- OTIMIZAÇÃO 1: Calculamos a trigonometria apenas UMA vez por frame.
+    local angle = cam:getAngle()
+    local sin_cam = math.sin(angle)
+    local cos_cam = math.cos(angle)
+
     table.sort(visible_objects, function(a, b)
-        local angle = cam:getAngle()
-        local sin_cam = math.sin(angle)
-        local cos_cam = math.cos(angle)
-        
+        -- Usamos as variáveis locais já calculadas acima
         local depthA = -a.x * sin_cam + a.y * cos_cam
         local depthB = -b.x * sin_cam + b.y * cos_cam
         
@@ -43,24 +50,28 @@ end
 local tree_shadow = g.newImage("assets/tree_shadow.png")
 
 function renderScene(cam)
-    for i = 1, #visible_objects do
-        if visible_objects[i].type == "player" or visible_objects[i].type == "droped_iten" then
-            visible_objects[i].src:draw(cam:getAngle())
+    -- OTIMIZAÇÃO 2b: Usamos 'visible_n' em vez de '#visible_objects' para garantir exatidão
+    for i = 1, visible_n do
+        local obj = visible_objects[i] -- Criado um atalho local para manter o código limpo
+        
+        if obj.type == "player" or obj.type == "droped_iten" then
+            obj.src:draw(cam:getAngle())
         else
-            if visible_objects[i].type == "tree" then
+            if obj.type == "tree" then
                 g.setBlendMode("alpha", "premultiplied")
 
                 if time.hour >= 6 and time.hour < 12 then
-                    g.setColor(1,1,1, (time.hour-6)/6)
-                    g.draw(tree_shadow, visible_objects[i].x, visible_objects[i].y, 0, 1, 1, tree_shadow:getWidth()/2, tree_shadow:getHeight()/2)
+                    g.setColor(1, 1, 1, (time.hour-6)/6)
+                    g.draw(tree_shadow, obj.x, obj.y, 0, 1, 1, tree_shadow:getWidth()/2, tree_shadow:getHeight()/2)
                 elseif time.hour >= 12 and time.hour < 18 then
-                    g.setColor(1,1,1, 1-(time.hour-12)/6)
-                    g.draw(tree_shadow, visible_objects[i].x, visible_objects[i].y, 0, 1, 1, tree_shadow:getWidth()/2, tree_shadow:getHeight()/2)
+                    g.setColor(1, 1, 1, 1-(time.hour-12)/6)
+                    g.draw(tree_shadow, obj.x, obj.y, 0, 1, 1, tree_shadow:getWidth()/2, tree_shadow:getHeight()/2)
                 end
 
                 g.setBlendMode("alpha")
             end
-            visible_objects[i].src:draw(visible_objects[i].x, visible_objects[i].y, visible_objects[i].z, visible_objects[i].rad)
+            
+            obj.src:draw(obj.x, obj.y, obj.z, obj.rad)
         end
     end
 end

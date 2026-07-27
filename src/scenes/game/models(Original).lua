@@ -1,6 +1,5 @@
 local Object = require "lib/classic"
 local Model = Object:extend()
-local g = love.graphics
 
 function Model:new(image, w, h, anim, color)
     self.image = image
@@ -9,13 +8,6 @@ function Model:new(image, w, h, anim, color)
     self.frames = (self.image:getWidth()/w) - 1
     self.quad = {}
     self.color = color or {1, 1, 1}
-    
-    -- OTIMIZAÇÃO: Criação de SpriteBatches (um para o modelo, outro para a sombra)
-    self.batch = g.newSpriteBatch(self.image, self.frames + 1, "dynamic")
-    self.shadow_batch = g.newSpriteBatch(self.image, self.frames + 1, "dynamic")
-    self.batch_ids = {}
-    self.shadow_batch_ids = {}
-
     self.animation = anim or nil
     if anim and anim ~= false then
         self.anim_switch = false
@@ -28,25 +20,11 @@ function Model:new(image, w, h, anim, color)
 
     for i = 0, self.frames do
         self.quad[i] = g.newQuad(i*w, 0, w, h, self.image:getDimensions())
-        -- Registra as camadas no batch e guarda os IDs para podermos atualizá-las depois
-        self.batch_ids[i] = self.batch:add(self.quad[i], 0, 0, 0, 1, 1, w/2, h/2)
-        self.shadow_batch_ids[i] = self.shadow_batch:add(self.quad[i], 0, 0, 0, 1, 1, w/2, h/2)
     end
-    
-    -- Controle de estado para evitar reprocessamento desnecessário
-    self.last_z = nil
-    self.last_rad = nil
-    self.needs_batch_update = true
 end
 
 function Model:destroy()
-    if self.fixture then self.fixture:destroy() end
-    -- É boa prática liberar os recursos da memória
-    self.batch:release()
-    self.shadow_batch:release()
-    for i = 0, self.frames do
-        self.quad[i]:release()
-    end
+    self.fixture:destroy()
 end
 
 function Model:update(dt)
@@ -59,7 +37,6 @@ function Model:update(dt)
                         self.quad[i]:setViewport(i*self.width, self.anim_position*self.height, self.width, self.height)
                     end
                     self.anim_switch = false
-                    self.needs_batch_update = true -- Avisa que a imagem mudou e o batch precisa de update
                     return
                 else
                     self.anim_repeat = self.anim_repeat + 1
@@ -71,14 +48,12 @@ function Model:update(dt)
             for i = 0, self.frames do
                 self.quad[i]:setViewport(i*self.width, self.anim_position*self.height, self.width, self.height)
             end
-            
-            self.needs_batch_update = true -- Avisa o draw para atualizar os quads
+
             self.anim_count = 0
         else
             self.anim_count = self.anim_count + (dt*self.animation.speed)
         end
     end
-    self.needs_batch_update = true
 end
 
 function Model:animate(qnt)
@@ -97,38 +72,23 @@ function Model:draw_shadow()
     else
         g.setColor(0,0,0, 0.1-(model_shadow_position*0.03))
     end
-    
-    -- Como a sombra pode mudar todo frame dependendo de model_shadow_position e model_shadow_render,
-    -- atualizamos os parâmetros dentro do batch. O custo de usar `:set` é muito menor que `g.draw`.
     for i = 0, self.frames do
-        self.shadow_batch:set(self.shadow_batch_ids[i], self.quad[i], model_shadow_render[i].dx, model_shadow_render[i].dy, 0, 1, 1, self.width/2, self.height/2)
+        g.draw(self.image, self.quad[i], self.x+model_shadow_render[i].dx, self.y+model_shadow_render[i].dy, 0, 1, 1, self.width/2, self.height/2)
     end
-    
-    -- Um único draw call por sombra
-    g.draw(self.shadow_batch, self.x, self.y)
 end
 
 function Model:draw(x, y, z, rad)
     g.setColor(self.color)
-    
-    -- Só atualizamos os offsets internos do SpriteBatch se o z, a rotação ou a animação tiverem mudado
-    if self.needs_batch_update or self.last_z ~= z or self.last_rad ~= rad then
-        for i = 0, self.frames do
-            self.batch:set(self.batch_ids[i], self.quad[i], model_render[i+z].dx, model_render[i+z].dy, rad, 1, 1, self.width/2, self.height/2)
-        end
-        self.last_z = z
-        self.last_rad = rad
-        self.needs_batch_update = false
+    for i = 0, self.frames do
+        g.draw(self.image, self.quad[i], x+model_render[i+z].dx, y+model_render[i+z].dy, rad, 1, 1, self.width/2, self.height/2)
     end
-    
-    -- Um único draw call por modelo
-    g.draw(self.batch, x, y)
 end
 
 function Model:getX() return self.x end
 function Model:getY() return self.y end
 function Model:getWidth() return self.width end
 function Model:getHeight() return self.height end
+
 function Model:getDimensions() return self.width, self.height end
 
 return Model

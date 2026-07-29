@@ -1,13 +1,21 @@
 map = {}
 
-maps_total = 1
+maps_total = 2
+
+earlyMap = 2
+tileSize = 16
+worldW, worldH = (100 * tileSize)*8, (100 * tileSize)*8
+
+function get_x(x) return (worldW/2)-(#map[earlyMap].grid[1]*tileSize/2)+(tileSize*x) - (tileSize/2) end
+function get_y(y) return (worldH/2)-(#map[earlyMap].grid*tileSize/2)+(tileSize*y) - (tileSize/2) end
 
 for m = 1, maps_total do
     local load_map = require("src/scenes/game/maps/map_"..m)
 
     map[m] = {
         grid = {},
-        obj = {}
+        obj = {},
+        teleport = {}
     }
 
     local count = 1
@@ -35,9 +43,20 @@ for m = 1, maps_total do
         end
         map[m].obj[count][i - (load_map.width*(count-1))] = load_map.layers[2].data[i]
     end
-end
 
-tileSize = 16
+    if #load_map.layers[3].objects > 0 then
+        for i = 1, #load_map.layers[3].objects do
+            map[m].teleport[i] = {}
+            map[m].teleport[i].x = (worldW/2)-(#map[m].grid[1]*tileSize/2)+load_map.layers[3].objects[i].x + (tileSize/2)
+            map[m].teleport[i].y = (worldH/2)-(#map[m].grid*tileSize/2)+load_map.layers[3].objects[i].y + (tileSize/2)
+            map[m].teleport[i].properties = {
+                target_map = load_map.layers[3].objects[i].properties["teleport"][1],
+                target_x = load_map.layers[3].objects[i].properties["teleport"][2] + 1,
+                target_y = load_map.layers[3].objects[i].properties["teleport"][3] + 1
+            }
+        end
+    end
+end
 
 local water_image = g.newImage("assets/water.png")
 danim:new("water", water_image, 16, 1)
@@ -51,13 +70,6 @@ for t = 1, (tile_image:getWidth()/tileSize) * (tile_image:getHeight()/tileSize) 
     --tile[t] = {x = t-((tile_image:getWidth()/tileSize)*tileCount), y = tileCount}
     tile[t] = {quad = g.newQuad((t-((tile_image:getWidth()/tileSize)*tileCount))*tileSize-tileSize, tileCount*tileSize, tileSize, tileSize, tile_image:getDimensions())}
 end
-
-earlyMap = 1
-
-worldW, worldH = (#map[earlyMap].grid[1] * tileSize)*8, (#map[earlyMap].grid * tileSize)*8
-
-function get_x(x) return (worldW/2)-(#map[earlyMap].grid[1]*tileSize/2)+(tileSize*x) - (tileSize/2) end
-function get_y(y) return (worldH/2)-(#map[earlyMap].grid*tileSize/2)+(tileSize*y) - (tileSize/2) end
 
 function get_coord_x(pixel_x)
     local mapCols = #map[earlyMap].grid[1]
@@ -85,10 +97,16 @@ montain_water = Model(g.newImage("assets/models/montain_water.png"), 16, 16)
 tree = g.newImage("assets/models/tree.png")
 tree2 = g.newImage("assets/models/tree2.png")
 wall = Model(g.newImage("assets/models/brickWall.png"), 16, 16)
-grass = Model(g.newImage("assets/models/grass.png"), 16, 16, {speed = 5})
+grass = Model(g.newImage("assets/models/grass.png"), 16, 16, {speed = 0.01})
 rock = g.newImage("assets/models/rock.png")
 water_rock = g.newImage("assets/models/water_rock.png")
 fall = Model(g.newImage("assets/models/fall.png"), 16, 16, {speed = 5})
+
+montain_cave = Model(g.newImage("assets/models/montain_cave.png"), 16, 16)
+cave_wall = Model(g.newImage("assets/models/cave_wall.png"), 16, 16)
+cave_exit = Model(g.newImage("assets/models/cave_exit.png"), 16, 16)
+
+void = Model(g.newImage("assets/models/void.png"), 16, 16)
 
 flower1 = Model(g.newImage("assets/models/flower1.png"), 16, 16)
 flower2 = Model(g.newImage("assets/models/flower2.png"), 16, 16)
@@ -99,7 +117,7 @@ function map_create_objects()
             if map[earlyMap].obj[y][x] == 2 then
                 table.insert(objects, {type = "model", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = montain, collision = true})
             elseif map[earlyMap].obj[y][x] == 3 then
-                table.insert(objects, {type = "model", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = wall, collision = true})
+                table.insert(objects, {type = "model", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = montain_cave, collision = false})
             elseif map[earlyMap].obj[y][x] == 4 then
                 table.insert(objects, {type = "grass", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = grass, collision = false})
             elseif map[earlyMap].obj[y][x] == 5 then
@@ -107,9 +125,11 @@ function map_create_objects()
             elseif map[earlyMap].obj[y][x] == 6 then
                 table.insert(objects, {type = "tree", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = Model(tree, 64, 64, {speed = 20}), collision = true})
             elseif map[earlyMap].obj[y][x] == 7 then
-                table.insert(objects, {type = "rock", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = Model(rock, 16, 16), collision = true})
+                table.insert(objects, {type = "rock", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = Model(rock, 16, 16, {speed = 20}), collision = true})
             elseif map[earlyMap].obj[y][x] == 8 then
                 table.insert(objects, {type = "water_rock", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = Model(water_rock, 16, 16), collision = true})
+            elseif map[earlyMap].obj[y][x] == 9 then
+                table.insert(objects, {type = "void", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = void, collision = true})
             elseif map[earlyMap].obj[y][x] == 20 then
                 table.insert(objects, {type = "montain_water", x = get_x(x), y = get_y(y), z = 35, rad = 0, src = montain_water, collision = false})
             elseif map[earlyMap].obj[y][x] == 21 then
@@ -120,15 +140,20 @@ function map_create_objects()
             elseif map[earlyMap].obj[y][x] == 23 then
                 table.insert(objects, {type = "flower", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = flower2,
                 light = light_system.addLight(get_x(x), get_y(y), 64, {get_rgb(127, 255, 255)}, 0.5), collision = false})
+            elseif map[earlyMap].obj[y][x] == 28 then
+                table.insert(objects, {type = "cave_wall", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = cave_wall, collision = true})
+            elseif map[earlyMap].obj[y][x] == 30 then
+                table.insert(objects, {type = "cave_exit", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = cave_exit, collision = false})
             end
         end
     end
 
     for i = 1, #objects do
         if objects[i].collision == true then
-            objects[i].body = love.physics.newBody(world, objects[i].x, objects[i].y, "static")
-            objects[i].shape = love.physics.newRectangleShape(16,16)
-            objects[i].fixture = love.physics.newFixture(objects[i].body, objects[i].shape)
+            objects_collision[i] = {}
+            objects_collision[i].body = love.physics.newBody(world, objects[i].x, objects[i].y, "static")
+            objects_collision[i].shape = love.physics.newRectangleShape(16,16)
+            objects_collision[i].fixture = love.physics.newFixture(objects_collision[i].body, objects_collision[i].shape)
         end
     end
 end
@@ -138,6 +163,16 @@ function map_update(dt)
     danim:update("swim", 5, dt)
     fall:animate(1)
     grass:animate(1)
+end
+
+function remove_object_from_map(ox, oy)
+    for x = 1, #map[earlyMap].obj[1] do
+        for y = 1, #map[earlyMap].obj do
+            if x == ox and y == oy then
+                map[earlyMap].obj[y][x] = 0
+            end
+        end
+    end
 end
 
 local swim_image = g.newImage("assets/swiming.png")
@@ -157,7 +192,9 @@ function map_draw(camera_rad)
             local tx = get_x(x)
             local ty = get_y(y)
             g.setColor(1,1,1)
-            g.draw(tile_image, tile[map[earlyMap].grid[y][x]].quad, tx, ty, 0, 1, 1, tileSize/2, tileSize/2)
+            if map[earlyMap].grid[y][x] > 0 then
+                g.draw(tile_image, tile[map[earlyMap].grid[y][x]].quad, tx, ty, 0, 1, 1, tileSize/2, tileSize/2)
+            end
         end
     end
 end

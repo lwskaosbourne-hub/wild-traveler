@@ -33,13 +33,14 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
         max = 30,
         items = {}
     }
-    self.inventory.empty_spaces = self.inventory.max - 3
+    self.inventory.empty_spaces = self.inventory.max - 4
     for i = 1, self.inventory.max do
         self.inventory.items[i] = {id = 0, n = 1}
     end
     self.inventory.items[1] = {id = 1, n = 1}
     self.inventory.items[2] = {id = 2, n = 1}
-    self.inventory.items[3] = {id = 4, n = 1}
+    self.inventory.items[3] = {id = 3, n = 1}
+    self.inventory.items[4] = {id = 5, n = 1}
     self.item_equiped = 2 -- ID of the item equiped
     self.interactive_point = {x = 0, y = 0}
 
@@ -120,6 +121,8 @@ function Player:update(dt, camera_rad)
         self.is_swiming = false
         self.speed = 50
     end
+
+    -- Teleport:
 
     -- Movements:
     if self.movementsBlocked == false then
@@ -250,7 +253,7 @@ function Player:draw_weapon(camera_rad)
             dir = -1
             x = -2
         end
-        g.setColor(1,1,1,self.alpha)
+        g.setColor(self.alpha, self.alpha, self.alpha)
         if self.body:get_frame_x() == 0 or self.body:get_frame_x() == 32 then
             g.draw(items_img, items[self.inventory.items[self.item_equiped].id].quad, 
                 self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad-rotation, dir, 1, (8/2)+x, 9+y)
@@ -271,7 +274,7 @@ function Player:draw(camera_rad)
     end
 
     if self.state == 2 then
-        g.setColor(1,1,1,self.alpha)
+        g.setColor(self.alpha, self.alpha, self.alpha)
         danim:draw("player_attack", self.bodyPhy:getX(), self.bodyPhy:getY(), self.rad, 1, 1, {1,1,1,self.alpha})
     end
 
@@ -284,11 +287,11 @@ function Player:draw(camera_rad)
     end
 
     g.setBlendMode("alpha", "premultiplied")
-    g.setColor(1,1,1,self.alpha)
+    g.setColor(self.alpha, self.alpha, self.alpha)
     g.draw(shadow, self.bodyPhy:getX(), self.bodyPhy:getY(), 0, 1, 1, shadow:getWidth()/2, shadow:getHeight()/2)
     g.setBlendMode("alpha")
-    self.body:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad, self.alpha)
-    self.eyes:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad, self.alpha)
+    self.body:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad, {self.alpha, self.alpha, self.alpha})
+    self.eyes:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad, {self.alpha, self.alpha, self.alpha})
 
     if self.body:get_frame_y() >= 0 * 16 and self.body:get_frame_y() <= 1 *16 or self.body:get_frame_y() == 7 * 16 then
         if self.is_swiming == false and self.state ~= 2 then

@@ -5,15 +5,21 @@ m = love.mouse
 a = love.audio
 phy = love.physics
 
-version = "Alpha 0.1.1"
+version = "Alpha 0.1.6"
 
 -- The type of dispositive version ("pc" or "android")
 dispositive = "pc"
 
+gui_scale = 0.8
+
 -- Graphics initiations:
 g.setDefaultFilter("nearest", "nearest")
 
-local font = g.newFont(7, "mono")
+--local font = love.graphics.newImageFont( "assets/font.png", [[ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ ]] )
+--love.graphics.setFont( font )
+
+local font = g.newFont("determination.ttf")
+font:setFilter("nearest", "nearest")
 font:setLineHeight( font:getLineHeight()*2 )
 g.setFont(font)
 
@@ -56,15 +62,17 @@ end
 function love.draw()
 	scene_draw()
 
+	--g.setColor(0,0,0)
+	--g.rectangle("fill",  g.getWidth() - (zoom*gui_scale)*84, g.getHeight() - (zoom*gui_scale)*10, (zoom*gui_scale)*84, (zoom*gui_scale)*10)
 	g.setColor(1,1,1)
-	g.print(version.." | FPS: "..love.timer.getFPS(), g.getWidth() - zoom*60, g.getHeight() - zoom*10, 0, zoom/1.5, zoom/1.5)
+	g.print(version.." | FPS: "..love.timer.getFPS(), g.getWidth() - (zoom*gui_scale)*82, g.getHeight() - (zoom*gui_scale)*10, 0, (zoom*gui_scale)/1.5, (zoom*gui_scale)/1.5)
 
 	if dev_gui == true then
-		g.print("Graphics zoom: "..zoom, zoom*5, zoom*50, 0, zoom/2, zoom/2)
-		g.print("Camera distance: "..camera_distance, zoom*5, zoom*55, 0, zoom/2, zoom/2)
-		g.print("Player position (X, Y): "..get_coord_x(player[player_id].bodyPhy:getX())..", "..get_coord_y(player[player_id].bodyPhy:getY()), zoom*5, zoom*60, 0, zoom/2, zoom/2)
-		g.print("Total objects: "..#objects, zoom*5, zoom*65, 0, zoom/2, zoom/2)
-		g.print("Visible objects: "..visible_n, zoom*5, zoom*70, 0, zoom/2, zoom/2)
+		g.print("Graphics zoom: "..zoom, zoom*5, zoom*50, 0, zoom/4, zoom/4)
+		g.print("Camera distance: "..camera_distance, zoom*5, zoom*55, 0, zoom/4, zoom/4)
+		g.print("Player position (X, Y): "..get_coord_x(player[player_id].bodyPhy:getX())..", "..get_coord_y(player[player_id].bodyPhy:getY()), zoom*5, zoom*60, 0, zoom/4, zoom/4)
+		g.print("Total objects: "..#objects, zoom*5, zoom*65, 0, zoom/4, zoom/4)
+		g.print("Visible objects: "..#visible_objects, zoom*5, zoom*70, 0, zoom/4, zoom/4)
 	end
 end
 
@@ -73,8 +81,10 @@ function love.keypressed(key)
 
 	if key == "f12" then
 		if fullscreen == false then
+			gui_scale = 0.5
 			fullscreen = true
 		else
+			gui_scale = 0.8
 			fullscreen = false
 		end
 		w.setFullscreen(fullscreen)

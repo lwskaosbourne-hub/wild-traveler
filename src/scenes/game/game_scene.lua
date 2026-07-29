@@ -24,6 +24,7 @@ light_system = require "src/scenes/game/light_system"
 light_system.load(g.getWidth(), g.getHeight())
 require "src/scenes/game/day_cicle"
 require "src/scenes/game/objects"
+require "src/scenes/game/teleport"
 
 -- Enable/Disable Shadows (0 -> 'disabled', 1 -> 'enabled'):
 shadows = 0
@@ -40,9 +41,12 @@ function game_load()
 	cam:setWorld(0, 0, worldW, worldH)
 	cam:setScale(zoom*camera_distance)
 	cam:setPosition(worldW/2, worldH/2)
+	last_camera_angle = cam:getAngle()
 
 	player = {}
-	player[1] = Player(48, 20, 1, "cat", 2, 1)
+	--player[1] = Player(49, 15, 1, "cat", 2, 1)
+	player[1] = Player(47, 97, 2, "cat", 2, 1)
+	player[1].rad = math.rad(180)
 
 	inventory_set()
 
@@ -52,7 +56,6 @@ function game_load()
 	--light_system.addLight(get_x(50), get_y(30), 100, {0.5, 0.3, 0}, 1)
 
 	objects_ini()
-	map_create_objects()
 
 	toutch_buttons = {}
 	toutch_buttons.movement = {id = nil, dist = 1, is_pressed = false, 
@@ -78,6 +81,8 @@ function game_load()
 
 	local atk_image = g.newImage("assets/attack.png")
 	danim:new("player_attack", atk_image, 6, 1)
+
+	insert_objects = false
 end
 
 function game_update(dt)
@@ -87,12 +92,16 @@ function game_update(dt)
 		end
     end
 	player[player_id]:update(dt, cam:getAngle())
-	cam:setPosition(player[player_id]:getPosition())
+	cam:setPosition(player[player_id].bodyPhy:getPosition())
 
-	inventory_update(dt)
-	map_update(dt)
-	renderUpdate(cam, objects)
-	objects_update(dt)
+	if block_while_transiting == false then
+		map_update(dt)
+		renderUpdate(cam, objects)
+		objects_update(dt)
+		inventory_update(dt)
+	end
+	teleport_update(dt)
+	update_hud(dt)
 
 	-- Day/Night process:
 	if time.count >= 1 then
@@ -187,13 +196,22 @@ function game_draw()
     cam:draw(function(l,t,w,h)
 		water_draw()
 		map_draw(cam:getAngle())
-		if relativeMode == false then
+		if insert_objects == true then
 			local x = get_x(get_coord_x(cam:toWorldX(m.getX(), m.getY()))) - (tileSize/2)
 			local y = get_y(get_coord_y(cam:toWorldY(m.getX(), m.getY()))) - (tileSize/2)
 			g.setColor(1,0,0,0.5)
 			g.rectangle("line", x, y, tileSize, tileSize)
 		end
-		renderScene(cam, objects)
+		if block_while_transiting == false then
+			renderScene(cam, objects)
+		end
+
+		if dev_gui == true then
+			for i = 1, #map[earlyMap].teleport do
+				g.setColor(1,1,1,0.5)
+				g.rectangle("fill", map[earlyMap].teleport[i].x - 8, map[earlyMap].teleport[i].y - 8, 16, 16)
+			end
+		end
 	end)
 	if dispositive == "android" then
 		if inventory_window == false then

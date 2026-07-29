@@ -1,4 +1,4 @@
-objects = {}
+
 
 camp_fire = Model(g.newImage("assets/models/camp_fire.png"), 16, 16, {speed = 5})
 
@@ -14,9 +14,10 @@ function new_object(src, x, y, z, t, rad, collision, light)
     objects[id].light = light or nil
 
     if collision == true then
+        objects_collision[id] = {}
         if t == "cabin" then
-            objects[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
-            objects[id].shape = love.physics.newChainShape(true,
+            objects_collision[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
+            objects_collision[id].shape = love.physics.newChainShape(true,
                 objects[id].src:getWidth()/2 - 10, -8,
                 objects[id].src:getWidth()/2, -8,
                 objects[id].src:getWidth()/2, -objects[id].src:getHeight()/2,
@@ -26,11 +27,11 @@ function new_object(src, x, y, z, t, rad, collision, light)
                 objects[id].src:getWidth()/2, 8,
                 (objects[id].src:getWidth()/2) - 10, 8
             )
-            objects[id].fixture = love.physics.newFixture(objects[id].body, objects[id].shape)
+            objects_collision[id].fixture = love.physics.newFixture(objects_collision[id].body, objects_collision[id].shape)
         else
-            objects[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
-            objects[id].shape = love.physics.newRectangleShape(objects[id].src:getDimensions())
-            objects[id].fixture = love.physics.newFixture(objects[id].body, objects[id].shape)
+            objects_collision[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
+            objects_collision[id].shape = love.physics.newRectangleShape(objects[id].src:getDimensions())
+            objects_collision[id].fixture = love.physics.newFixture(objects_collision[id].body, objects_collision[id].shape)
         end
     end
 end
@@ -46,14 +47,30 @@ function new_drop(iten_id, x, y, z)
 end
 
 function objects_ini()
+    objects = {}
+    objects_collision = {}
     objects[1] = {type = "player", x = 0, y = 0, src = player[player_id], id = player_id}
 
-    new_object(Model(g.newImage("assets/models/cabin.png"), 64, 64), 45, 20, 0, "cabin", 0, true)
+    map_create_objects()
 
-    new_object(camp_fire, 50, 20, 0, "camp_fire", 0, true,
-        light_system.addLight(get_x(50), get_y(20), 130, {1,0.5,0}, 1))
+    --visible_objects = {}
 
-    new_drop(4, get_x(48), get_y(18), 0)
+    
+
+    --new_object(Model(g.newImage("assets/models/cabin.png"), 64, 64), 45, 20, 0, "cabin", 0, true)
+
+    --new_object(camp_fire, 50, 20, 0, "camp_fire", 0, true,
+    --    light_system.addLight(get_x(50), get_y(20), 130, {1,0.5,0}, 1))
+
+    --new_drop(4, get_x(48), get_y(18), 0)
+end
+
+function objects_destroy()
+    for i = 1, #objects do
+        if objects[i].collision == true and objects_collision[i] ~= nil then
+            objects_collision[i].fixture:destroy()
+        end
+    end
 end
 
 local camp_fire_light_direction = 0
@@ -129,32 +146,62 @@ end
 function objects_interact()
     -- Confere se algum jogador está interagindo com algum objeto no cenário
     for i = 1, #player do
-        if player[i].state == 2 and items[player[i].item_equiped].class == "exe" then
+        if player[i].state == 2 then
             local p_x, p_y = get_coord_x(player[i].interactive_point.x), get_coord_y(player[i].interactive_point.y)
 
             for o = 1, #objects do
-                if objects[o].type == "tree" then
+                if objects[o].type == "tree" and items[player[i].item_equiped].class == "exe" then
                     if player[i].interactive_point.x >= objects[o].x - 8 and 
                     player[i].interactive_point.x <= objects[o].x + 8 and
                     player[i].interactive_point.y >= objects[o].y - 8 and 
                     player[i].interactive_point.y <= objects[o].y + 8 then
                         if objects[o].hp <= 0 then
-                            local wood_amount = math.random(3, 10)
+                            local wood_amount = math.random(8, 15)
                             local apple_amount = math.random(0,5)
                             for w = 1, wood_amount do
                                 local x = (objects[o].x - 16) + math.random(0, 32)
                                 local y = (objects[o].y - 16) + math.random(0, 32)
-                                new_drop(5, x, y, 32)
+                                new_drop(6, x, y, 32)
                             end
                             if apple_amount > 0 then
                                 for a = 1, apple_amount do
                                     local x = (objects[o].x - 16) + math.random(0, 32)
                                     local y = (objects[o].y - 16) + math.random(0, 32)
-                                    new_drop(4, x, y, 32)
+                                    new_drop(5, x, y, 32)
                                 end
                             end
-                            objects[o].fixture:destroy()
+                            remove_object_from_map(get_coord_x(objects[o].x), get_coord_y(objects[o].y))
+                            objects_collision[o].fixture:destroy()
+                            objects_collision[o] = nil
                             objects[o].src:animate(1)
+                            objects[o].collision = false
+                            table.remove(objects, o)
+                        else
+                            if danim:getFrame("player_attack") == 0 then
+                                objects[o].src:animate(1)
+                                player[i].energy = player[i].energy - 1
+                                objects[o].hp = objects[o].hp - 1
+                            end
+                        end
+                        break
+                    end
+                elseif objects[o].type == "rock" and items[player[i].item_equiped].class == "pickaxe" then
+                    if player[i].interactive_point.x >= objects[o].x - 8 and 
+                    player[i].interactive_point.x <= objects[o].x + 8 and
+                    player[i].interactive_point.y >= objects[o].y - 8 and 
+                    player[i].interactive_point.y <= objects[o].y + 8 then
+                        if objects[o].hp <= 0 then
+                            local rock_amount = math.random(3, 10)
+                            for r = 1, rock_amount do
+                                local x = (objects[o].x - 16) + math.random(0, 32)
+                                local y = (objects[o].y - 16) + math.random(0, 32)
+                                new_drop(7, x, y, 16)
+                            end
+                            remove_object_from_map(get_coord_x(objects[o].x), get_coord_y(objects[o].y))
+                            objects_collision[o].fixture:destroy()
+                            objects_collision[o] = nil
+                            objects[o].src:animate(1)
+                            objects[o].collision = false
                             table.remove(objects, o)
                         else
                             if danim:getFrame("player_attack") == 0 then

@@ -13,7 +13,7 @@ function teleport_update(dt)
             local t = map[earlyMap].teleport[i]
 
             player[player_id].alpha = distance/8
-            if distance <= 2 and transiting_map == false then
+            if distance <= 4 and transiting_map == false then
                 player[player_id].movementsBlocked = true
                 fade = 1
                 if fade_alpha >= 1 then
@@ -30,6 +30,8 @@ function teleport_update(dt)
                     objects_ini()
                 
                     transiting_map = true
+                else
+                    player[player_id]:moveFoward(dt, 10)
                 end
 
                 --earlyMap = target_map
@@ -54,7 +56,7 @@ function teleport_update(dt)
             transiting_map = false
         else
             --player[player_id].alpha = 1 - fade_alpha
-            player[player_id]:moveFoward(dt, 10)
+            player[player_id]:moveFoward(dt, 20)
         end
     end
 end

@@ -51,6 +51,16 @@ function objects_ini()
     objects_collision = {}
     objects[1] = {type = "player", x = 0, y = 0, src = player[player_id], id = player_id}
 
+    for i = 1, #player do
+        if player[i].light == nil then
+            if player[i].light_switch == true then
+                player[i].light = light_system.addLight(player[i].bodyPhy:getX(), player[i].bodyPhy:getY(), 100, {1, 1, 1}, 1)
+            else
+                player[i].light = light_system.addLight(player[i].bodyPhy:getX(), player[i].bodyPhy:getY(), 100, {1, 1, 1}, 0)
+            end
+        end
+    end
+
     map_create_objects()
 
     --visible_objects = {}
@@ -71,6 +81,10 @@ function objects_destroy()
             objects_collision[i].fixture:destroy()
         end
     end
+    light_system.lights = {}
+    for i = 1, #player do
+        player[i].light = nil
+    end
 end
 
 local camp_fire_light_direction = 0
@@ -79,19 +93,23 @@ local camp_fire_light = 130
 function objects_update(dt)
     camp_fire:animate(1)
     if camp_fire.anim_position == 0 then
-        camp_fire_light = 140
+        camp_fire_light = 160
     elseif camp_fire.anim_position == 1 then
-        camp_fire_light = 135
+        camp_fire_light = 155
     elseif camp_fire.anim_position == 2 then
-        camp_fire_light = 130
+        camp_fire_light = 150
     elseif camp_fire.anim_position == 3 then
-        camp_fire_light = 135
+        camp_fire_light = 155
     end
 
     for i = 1, #objects do
         if objects[i].type == "player" then
             objects[i].x = objects[i].src.bodyPhy:getX()
             objects[i].y = objects[i].src.bodyPhy:getY()
+        elseif objects[i].type == "cave_exit" then
+            objects[i].light.color = {ambient_color[1], ambient_color[2], ambient_color[3]}
+            objects[i].light.intensity = ambient_color[4]
+            objects[i].src.color = ambient_color
         elseif objects[i].type == "droped_iten" then
             if objects[i].src.player_get_iten == true then
                 player[objects[i].src.player_id_following]:addIten(objects[i].src.iten_id)
@@ -172,7 +190,7 @@ function objects_interact()
                             end
                             remove_object_from_map(get_coord_x(objects[o].x), get_coord_y(objects[o].y))
                             objects_collision[o].fixture:destroy()
-                            objects_collision[o] = nil
+                            table.remove(objects_collision, o)
                             objects[o].src:animate(1)
                             objects[o].collision = false
                             table.remove(objects, o)
@@ -199,7 +217,7 @@ function objects_interact()
                             end
                             remove_object_from_map(get_coord_x(objects[o].x), get_coord_y(objects[o].y))
                             objects_collision[o].fixture:destroy()
-                            objects_collision[o] = nil
+                            table.remove(objects_collision, o)
                             objects[o].src:animate(1)
                             objects[o].collision = false
                             table.remove(objects, o)

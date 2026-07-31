@@ -116,6 +116,7 @@ function game_update(dt)
 	end
 	
 	updateDayNightCycle(time.hour)
+
 	if k.isDown("up") then
 		time.speed = 10
 	elseif k.isDown("down") then

@@ -72,6 +72,10 @@ function renderScene(cam)
             end
             
             obj.src:draw(obj.x, obj.y, obj.z, obj.rad)
+
+            if obj.type == "cave_exit" then
+                cave_exit_base:draw(obj.x, obj.y, obj.z, obj.rad)
+            end
         end
     end
 end

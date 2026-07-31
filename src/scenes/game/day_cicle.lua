@@ -12,6 +12,8 @@ local day_cycle = {
 local start_node
 local end_node
 
+ambient_color = {0, 0, 0, 0}
+
 function updateDayNightCycle(current_hour)
     for i = 1, #day_cycle - 1 do
         if current_hour >= day_cycle[i].hour and current_hour < day_cycle[i+1].hour then
@@ -26,10 +28,16 @@ function updateDayNightCycle(current_hour)
     local t = (current_hour - day_cycle[start_node].hour) / (day_cycle[end_node].hour - day_cycle[start_node].hour)
 
     -- Mistura as cores Vermelha, Verde, Azul e Alpha
-    light_system.setAmbientColor(
+    ambient_color = {
         lerp(day_cycle[start_node].color[1], day_cycle[end_node].color[1], t), 
         lerp(day_cycle[start_node].color[2], day_cycle[end_node].color[2], t), 
         lerp(day_cycle[start_node].color[3], day_cycle[end_node].color[3], t), 
         lerp(day_cycle[start_node].color[4], day_cycle[end_node].color[4], t)
-    )
+    }
+
+    if earlyMap == 1 then
+        light_system.setAmbientColor(ambient_color[1], ambient_color[2], ambient_color[3], ambient_color[4])
+    else
+		light_system.setAmbientColor(0.10, 0.10, 0.10, 1)
+	end
 end

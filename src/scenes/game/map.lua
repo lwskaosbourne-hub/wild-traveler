@@ -97,14 +97,16 @@ montain_water = Model(g.newImage("assets/models/montain_water.png"), 16, 16)
 tree = g.newImage("assets/models/tree.png")
 tree2 = g.newImage("assets/models/tree2.png")
 wall = Model(g.newImage("assets/models/brickWall.png"), 16, 16)
-grass = Model(g.newImage("assets/models/grass.png"), 16, 16, {speed = 0.01})
+grass = Model(g.newImage("assets/models/grass.png"), 16, 16, {speed = 0.001})
 rock = g.newImage("assets/models/rock.png")
 water_rock = g.newImage("assets/models/water_rock.png")
 fall = Model(g.newImage("assets/models/fall.png"), 16, 16, {speed = 5})
 
 montain_cave = Model(g.newImage("assets/models/montain_cave.png"), 16, 16)
 cave_wall = Model(g.newImage("assets/models/cave_wall.png"), 16, 16)
-cave_exit = Model(g.newImage("assets/models/cave_exit.png"), 16, 16)
+
+cave_exit_light = Model(g.newImage("assets/models/cave_exit.png"), 16, 16)
+cave_exit_base = Model(g.newImage("assets/models/cave_exit_base.png"), 16, 16)
 
 void = Model(g.newImage("assets/models/void.png"), 16, 16)
 
@@ -140,10 +142,15 @@ function map_create_objects()
             elseif map[earlyMap].obj[y][x] == 23 then
                 table.insert(objects, {type = "flower", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = flower2,
                 light = light_system.addLight(get_x(x), get_y(y), 64, {get_rgb(127, 255, 255)}, 0.5), collision = false})
+            elseif map[earlyMap].obj[y][x] == 24 then
+                new_object(camp_fire, x, y, 0, "camp_fire", 0, true,
+                light_system.addLight(get_x(x), get_y(y), 130, {1,0.5,0}, 1))
             elseif map[earlyMap].obj[y][x] == 28 then
                 table.insert(objects, {type = "cave_wall", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = cave_wall, collision = true})
             elseif map[earlyMap].obj[y][x] == 30 then
-                table.insert(objects, {type = "cave_exit", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = cave_exit, collision = false})
+                --table.insert(objects, {type = "cave_exit", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = cave_exit_base, collision = false})
+                table.insert(objects, {type = "cave_exit", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = cave_exit_light, collision = false,
+                light = light_system.addLight(get_x(x), get_y(y), 120, {1, 1, 1}, 1)})
             end
         end
     end
@@ -163,6 +170,7 @@ function map_update(dt)
     danim:update("swim", 5, dt)
     fall:animate(1)
     grass:animate(1)
+    cave_exit_base:update(dt)
 end
 
 function remove_object_from_map(ox, oy)

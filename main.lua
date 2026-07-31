@@ -65,7 +65,7 @@ function love.draw()
 	--g.setColor(0,0,0)
 	--g.rectangle("fill",  g.getWidth() - (zoom*gui_scale)*84, g.getHeight() - (zoom*gui_scale)*10, (zoom*gui_scale)*84, (zoom*gui_scale)*10)
 	g.setColor(1,1,1)
-	g.print(version.." | FPS: "..love.timer.getFPS(), g.getWidth() - (zoom*gui_scale)*82, g.getHeight() - (zoom*gui_scale)*10, 0, (zoom*gui_scale)/1.5, (zoom*gui_scale)/1.5)
+	g.print(version.." | FPS: "..love.timer.getFPS(), g.getWidth() - (zoom*gui_scale)*64, g.getHeight() - (zoom*gui_scale)*8, 0, (zoom*gui_scale)/2, (zoom*gui_scale)/2)
 
 	if dev_gui == true then
 		g.print("Graphics zoom: "..zoom, zoom*5, zoom*50, 0, zoom/4, zoom/4)
@@ -129,7 +129,7 @@ function love.mousepressed(x, y, key)
 		if inventory_window == true then
 			inventory_buttonpressed(x, y, key)
 		else
-			if key == 1 then
+			if key == 1 and dispositive == "pc" then
 				player[player_id]:atk()
 				objects_interact()
 			end
@@ -172,6 +172,9 @@ function love.touchpressed( id, x, y, dx, dy, pressure )
 
 			if inventory_window == true then
 				inventory_buttonpressed(x, y)
+			else
+				player[player_id]:atk()
+				objects_interact()
 			end
 		end
 	end

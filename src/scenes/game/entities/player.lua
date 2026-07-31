@@ -44,10 +44,10 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.item_equiped = 2 -- ID of the item equiped
     self.interactive_point = {x = 0, y = 0}
 
-    self.light = light_system.addLight(self.bodyPhy:getX(), self.bodyPhy:getY(), 100, {1, 1, 1}, 0)
+    self.light = light_system.addLight(self.bodyPhy:getX(), self.bodyPhy:getY(), 100, {1, 1, 1}, 1)
     self.light_dir = 0
     self.light_speed = 10
-    self.light_switch = false
+    self.light_switch = true
 
     self.alpha = 1
     self.enter_into_cabin = false
@@ -83,20 +83,22 @@ end
 function Player:update(dt, camera_rad)
     --self.sprite:update(dt, camera_rad)
 
-    self.light.x, self.light.y = self.bodyPhy:getPosition()
+    if self.light ~= nil then
+        self.light.x, self.light.y = self.bodyPhy:getPosition()
 
-    if self.light_switch == true then
-        if self.light_dir == 0 then
-            if self.light.radius >= 120 then
-                self.light_dir = 1
+        if self.light_switch == true then
+            if self.light_dir == 0 then
+                if self.light.radius >= 120 then
+                    self.light_dir = 1
+                else
+                    self.light.radius = self.light.radius + (self.light_speed*dt)
+                end
             else
-                self.light.radius = self.light.radius + (self.light_speed*dt)
-            end
-        else
-            if self.light.radius <= 100 then
-                self.light_dir = 0
-            else
-                self.light.radius = self.light.radius - (self.light_speed*dt)
+                if self.light.radius <= 100 then
+                    self.light_dir = 0
+                else
+                    self.light.radius = self.light.radius - (self.light_speed*dt)
+                end
             end
         end
     end

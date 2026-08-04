@@ -54,17 +54,32 @@ function renderScene(cam)
     for i = 1, visible_n do
         local obj = visible_objects[i] -- Criado um atalho local para manter o código limpo
         
-        if obj.type == "player" or obj.type == "droped_iten" then
+        if obj.type == "player" then
+            if obj.src.siting_on_a_chair.id > 0 then
+                objects[obj.src.siting_on_a_chair.id].src:draw(
+                    objects[obj.src.siting_on_a_chair.id].x, 
+                    objects[obj.src.siting_on_a_chair.id].y, 
+                    objects[obj.src.siting_on_a_chair.id].z, 
+                    objects[obj.src.siting_on_a_chair.id].rad)
+            end
             obj.src:draw(cam:getAngle())
+        elseif obj.type == "droped_iten" then
+            obj.src:draw(cam:getAngle())
+        elseif obj.type == "chair" then
+            for p = 1, #player do
+                if player[p].siting_on_a_chair.id ~= obj.id then
+                    obj.src:draw(obj.x, obj.y, obj.z, obj.rad)
+                end
+            end
         else
             if obj.type == "tree" then
                 g.setBlendMode("alpha", "premultiplied")
 
                 if time.hour >= 6 and time.hour < 12 then
-                    g.setColor(1, 1, 1, (time.hour-6)/6)
+                    g.setColor(1, 1, 1, ((time.hour + (time.minutes*0.9/(time.minutes_max-1)))-6)/6)
                     g.draw(tree_shadow, obj.x, obj.y, 0, 1, 1, tree_shadow:getWidth()/2, tree_shadow:getHeight()/2)
                 elseif time.hour >= 12 and time.hour < 18 then
-                    g.setColor(1, 1, 1, 1-(time.hour-12)/6)
+                    g.setColor(1, 1, 1, 1-((time.hour + (time.minutes*0.9/(time.minutes_max-1)))-12)/6)
                     g.draw(tree_shadow, obj.x, obj.y, 0, 1, 1, tree_shadow:getWidth()/2, tree_shadow:getHeight()/2)
                 end
 

@@ -5,6 +5,7 @@ camp_fire = Model(g.newImage("assets/models/camp_fire.png"), 16, 16, {speed = 5}
 function new_object(src, x, y, z, t, rad, collision, light)
     local id = #objects + 1
     objects[id] = {}
+    objects[id].id = id
     objects[id].type = t
     objects[id].x = get_x(x)
     objects[id].y = get_y(y)
@@ -47,6 +48,13 @@ function new_drop(iten_id, x, y, z)
 end
 
 function objects_ini()
+    if world:isDestroyed() == true then
+        world = phy.newWorld(0, 0, true)
+
+        for i = 1, #player do
+            player[i]:addBody(player[i].teleport_target.x, player[i].teleport_target.y)
+        end
+    end
     objects = {}
     objects_collision = {}
     objects[1] = {type = "player", x = 0, y = 0, src = player[player_id], id = player_id}
@@ -54,9 +62,9 @@ function objects_ini()
     for i = 1, #player do
         if player[i].light == nil then
             if player[i].light_switch == true then
-                player[i].light = light_system.addLight(player[i].bodyPhy:getX(), player[i].bodyPhy:getY(), 100, {1, 1, 1}, 1)
+                player[i].light = light_system.addLight(player[i].bodyPhy:getX(), player[i].bodyPhy:getY(), 100, {1,0.5,0}, 1)
             else
-                player[i].light = light_system.addLight(player[i].bodyPhy:getX(), player[i].bodyPhy:getY(), 100, {1, 1, 1}, 0)
+                player[i].light = light_system.addLight(player[i].bodyPhy:getX(), player[i].bodyPhy:getY(), 100, {1,0.5,0}, 0)
             end
         end
     end
@@ -76,15 +84,17 @@ function objects_ini()
 end
 
 function objects_destroy()
-    for i = 1, #objects do
-        if objects[i].collision == true and objects_collision[i] ~= nil then
-            objects_collision[i].fixture:destroy()
-        end
-    end
+    --for i = 1, #objects do
+    --    if objects[i].collision == true and objects_collision[i] ~= nil and objects_collision[i] then
+    --        objects_collision[i].fixture:destroy()
+    --    end
+    --end
     light_system.lights = {}
     for i = 1, #player do
         player[i].light = nil
     end
+
+    world:destroy()
 end
 
 local camp_fire_light_direction = 0
@@ -128,12 +138,12 @@ function objects_update(dt)
                         player[p].y >= objects[i].y - objects[i].src:getHeight()/2 then
                             if player[p].enter_into_cabin == false then
                                 player[p].movementsBlocked = true
-                                if player[p].alpha <= 0 then
+                                if player[p].color[4] <= 0 then
                                     fade = 1
                                     player[p].enter_into_cabin = true
                                 else
                                     player[p]:moveFoward(dt, 10)
-                                    player[p].alpha = player[p].alpha - (5*dt)
+                                    player[p].color[4] = player[p].color[4] - (5*dt)
                                 end
                             else
                                 if fade_alpha >= 1 then
@@ -144,11 +154,11 @@ function objects_update(dt)
                                     player[p].movementsBlocked = false
                                     time.hour = 6
                                 elseif fade_alpha <= 0 then
-                                    if player[p].alpha >= 1 then
+                                    if player[p].color[4] >= 1 then
                                         player[p].enter_into_cabin = false
                                     else
                                         player[p]:moveFoward(dt, 10)
-                                        player[p].alpha = player[p].alpha + (5*dt)
+                                        player[p].color[4] = player[p].color[4] + (5*dt)
                                     end
                                 end
                             end
@@ -161,14 +171,14 @@ function objects_update(dt)
     end
 end
 
-function objects_interact()
+function objects_interact(key)
     -- Confere se algum jogador está interagindo com algum objeto no cenário
     for i = 1, #player do
         if player[i].state == 2 then
             local p_x, p_y = get_coord_x(player[i].interactive_point.x), get_coord_y(player[i].interactive_point.y)
 
             for o = 1, #objects do
-                if objects[o].type == "tree" and items[player[i].item_equiped].class == "exe" then
+                if objects[o].type == "tree" and items[player[i].item_equiped].class == "exe" and key == 1 then
                     if player[i].interactive_point.x >= objects[o].x - 8 and 
                     player[i].interactive_point.x <= objects[o].x + 8 and
                     player[i].interactive_point.y >= objects[o].y - 8 and 
@@ -203,7 +213,7 @@ function objects_interact()
                         end
                         break
                     end
-                elseif objects[o].type == "rock" and items[player[i].item_equiped].class == "pickaxe" then
+                elseif objects[o].type == "rock" and items[player[i].item_equiped].class == "pickaxe" and key == 1 then
                     if player[i].interactive_point.x >= objects[o].x - 8 and 
                     player[i].interactive_point.x <= objects[o].x + 8 and
                     player[i].interactive_point.y >= objects[o].y - 8 and 
@@ -229,6 +239,16 @@ function objects_interact()
                             end
                         end
                         break
+                    end
+                elseif objects[o].type == "chair" and key == 2 then
+                    if player[i].interactive_point.x >= objects[o].x - 8 and 
+                    player[i].interactive_point.x <= objects[o].x + 8 and
+                    player[i].interactive_point.y >= objects[o].y - 8 and 
+                    player[i].interactive_point.y <= objects[o].y + 8 then
+                        player[i]:destroy_fixture()
+                        --player[i].movementsBlocked = true
+                        player[i].siting_on_a_chair.state = 1
+                        player[i].siting_on_a_chair.id = o
                     end
                 end
             end

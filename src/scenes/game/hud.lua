@@ -19,7 +19,7 @@ function draw_hud()
     g.draw(hp_bar, hud_scale + (hud_scale*11), hud_scale + (hud_scale*2), 0, hpBarW, hud_scale)
     g.draw(energy_bar, hud_scale + (hud_scale*11), hud_scale + (hud_scale*11), 0, energyBarW, hud_scale)
 
-    local minutes_calc = math.floor(((time.hour-math.floor(time.hour))*60/1))
+    --local minutes_calc = math.floor(((time.hour-math.floor(time.hour))*60/1))
     local minutes = 0
     local hour = 0
     if math.floor(time.hour) < 10 then
@@ -27,10 +27,10 @@ function draw_hud()
     else
         hour = math.floor(time.hour)
     end
-    if minutes_calc < 10 then
-        minutes = "0" .. minutes_calc
+    if math.floor(time.minutes) < 10 then
+        minutes = "0" .. math.floor(time.minutes)
     else
-        minutes = minutes_calc
+        minutes = math.floor(time.minutes)
     end
     g.setColor(1,1,1)
     g.print(hour..":"..minutes, hud_scale + (hud_scale*10), hud_scale + (hud_scale*19), 0, hud_scale/1.5, hud_scale/1.5)

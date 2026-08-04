@@ -29,6 +29,25 @@ require "src/scenes/game/teleport"
 -- Enable/Disable Shadows (0 -> 'disabled', 1 -> 'enabled'):
 shadows = 0
 
+function touch_buttons_ini()
+	toutch_buttons = {}
+	toutch_buttons.movement = {id = nil, dist = 1, is_pressed = false, 
+								x = zoom*30, y = g.getHeight() - (zoom*30), 
+								rad = zoom*20, 
+								dx = zoom*30, dy = g.getHeight() - (zoom*30), 
+								angle = 0, size = 30}
+	toutch_buttons.movement.x = zoom*toutch_buttons.movement.size+10
+	toutch_buttons.movement.y = g.getHeight() - (zoom*toutch_buttons.movement.size+10)
+	toutch_buttons.movement.rad = zoom*toutch_buttons.movement.size
+
+	toutch_buttons.attack = {
+		x = g.getWidth() - (zoom*40),
+		y = g.getHeight() - (zoom*30),
+		size = zoom*15,
+		is_pressed = false
+	}
+end
+
 function game_load()
     player_id = 1
 
@@ -45,7 +64,7 @@ function game_load()
 
 	player = {}
 	--player[1] = Player(49, 15, 1, "cat", 2, 1)
-	player[1] = Player(47, 97, 2, "cat", 2, 1)
+	player[1] = Player(47, 97, earlyMap, "cat", 2, 1)
 	player[1].rad = math.rad(180)
 
 	inventory_set()
@@ -57,22 +76,16 @@ function game_load()
 
 	objects_ini()
 
-	toutch_buttons = {}
-	toutch_buttons.movement = {id = nil, dist = 1, is_pressed = false, 
-								x = zoom*30, y = g.getHeight() - (zoom*30), 
-								rad = zoom*20, 
-								dx = zoom*30, dy = g.getHeight() - (zoom*30), 
-								angle = 0, size = 30}
-	toutch_buttons.movement.x = zoom*toutch_buttons.movement.size+10
-	toutch_buttons.movement.y = g.getHeight() - (zoom*toutch_buttons.movement.size+10)
-	toutch_buttons.movement.rad = zoom*toutch_buttons.movement.size
+	touch_buttons_ini()
 
 	hp_icon = g.newImage("assets/heart.png")
 	bag_icon = g.newImage("assets/bag.png")
 
 	time = {
 		hour = 15,
-		hour_max = 23.99,
+		hour_max = 23,
+		minutes = 0,
+		minutes_max = 60,
 		count = 0,
 		speed = 0.5
 	}
@@ -104,21 +117,31 @@ function game_update(dt)
 	update_hud(dt)
 
 	-- Day/Night process:
-	if time.count >= 1 then
-		if time.hour > time.hour_max then
+	--if time.count >= 1 then
+	--	if time.hour > time.hour_max then
+	--		time.hour = 0
+	--	else
+	--		time.hour = time.hour + 0.01
+	--	end
+	--	time.count = 0
+	--else
+	--	time.count = time.count + (time.speed*dt)
+	--end
+	if time.minutes >= time.minutes_max then
+		if time.hour == time.hour_max then
 			time.hour = 0
 		else
-			time.hour = time.hour + (dt*time.speed)
+			time.hour = time.hour + 1
 		end
-		time.count = 0
+		time.minutes = 0
 	else
-		time.count = time.count + (dt*time.speed)
+		time.minutes = time.minutes + (time.speed*dt)
 	end
 	
-	updateDayNightCycle(time.hour)
+	updateDayNightCycle(time.hour + (time.minutes*0.9/(time.minutes_max-1)))
 
 	if k.isDown("up") then
-		time.speed = 10
+		time.speed = 20
 	elseif k.isDown("down") then
 		time.speed = 5
 	else
@@ -219,6 +242,8 @@ function game_draw()
 			g.setColor(1,1,1)
 			g.circle("line", toutch_buttons.movement.x, toutch_buttons.movement.y, toutch_buttons.movement.rad)
 			g.circle("fill", toutch_buttons.movement.dx, toutch_buttons.movement.dy, toutch_buttons.movement.rad/3)
+
+			g.circle("fill", toutch_buttons.attack.x, toutch_buttons.attack.y, toutch_buttons.attack.size)
 		end
 		g.setColor(1,1,1)
 		g.draw(bag_icon, g.getWidth() - ((bag_icon:getWidth()+2)*zoom), 2*zoom, 0, zoom, zoom)

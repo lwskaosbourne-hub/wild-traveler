@@ -12,7 +12,7 @@ function teleport_update(dt)
         if distance <= 8 then
             local t = map[earlyMap].teleport[i]
 
-            player[player_id].alpha = distance/8
+            player[player_id].color[4] = distance/8
             if distance <= 4 and transiting_map == false then
                 player[player_id].movementsBlocked = true
                 fade = 1
@@ -20,7 +20,9 @@ function teleport_update(dt)
                     target_x = get_x(t.properties.target_x)
                     target_y = get_y(t.properties.target_y)
                     target_map = t.properties.target_map
-                    player[player_id].bodyPhy:setPosition(target_x, target_y)
+                    --player[player_id].bodyPhy:setPosition(target_x, target_y)
+                    player[player_id].teleport_target.x = target_x
+                    player[player_id].teleport_target.y = target_y
                     block_while_transiting = true
 
                     earlyMap = target_map
@@ -53,6 +55,7 @@ function teleport_update(dt)
         if fade_alpha <= 0 then
             player[player_id].movementsBlocked = false
             collectgarbage("collect")
+            player[player_id].color[4] = 1
             transiting_map = false
         else
             --player[player_id].alpha = 1 - fade_alpha

@@ -10,6 +10,7 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.energy = self.energy_max
     self.x = get_x(x)
     self.y = get_y(y)
+    self.z = 0
     self.w = 16
     self.h = 16
     self.dx = 0
@@ -23,7 +24,7 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.sprite = sprite
     self.body = Sprite("player", "assets/sprites/" .. sprite .. "/body" .. body_id .. ".png", 4, 8)
     self.eyes = Sprite("player", "assets/sprites/" .. sprite .. "/eyes" .. eyes_id .. ".png", 4, 8)
-    self.state = 0 -- 0 = Static, 1 = Walking, 2 = Attack
+    self.state = 0 -- 0 = Static, 1 = Walking, 2 = Attack, 3 = Sit
     self.movementsBlocked = false
     self.bodyPhy = love.physics.newBody(world, self.x, self.y, "dynamic")
     self.shape = love.physics.newCircleShape(6)
@@ -44,13 +45,22 @@ function Player:new(x, y, map, sprite, body_id, eyes_id)
     self.item_equiped = 2 -- ID of the item equiped
     self.interactive_point = {x = 0, y = 0}
 
-    self.light = light_system.addLight(self.bodyPhy:getX(), self.bodyPhy:getY(), 100, {1, 1, 1}, 1)
+    self.light = light_system.addLight(self.bodyPhy:getX(), self.bodyPhy:getY(), 100, {1,0.5,0}, 1)
     self.light_dir = 0
     self.light_speed = 10
     self.light_switch = true
 
-    self.alpha = 1
+    self.color = {1, 1, 1, 1}
     self.enter_into_cabin = false
+    self.siting_on_a_chair = {state = 0, id = 0}
+
+    self.teleport_target = {x = 0, y = 0}
+end
+
+function Player:addBody(x, y)
+    self.bodyPhy = love.physics.newBody(world, x, y, "dynamic")
+    self.shape = love.physics.newCircleShape(6)
+    self.fixture = love.physics.newFixture(self.bodyPhy, self.shape)
 end
 
 function Player:addIten(id)
@@ -82,6 +92,42 @@ end
 
 function Player:update(dt, camera_rad)
     --self.sprite:update(dt, camera_rad)
+
+    if self.siting_on_a_chair.state == 1 then
+        if distanceFrom(self.bodyPhy:getX(), self.bodyPhy:getY(), objects[self.siting_on_a_chair.id].x, objects[self.siting_on_a_chair.id].y) <= 4 then
+            self.bodyPhy:setPosition(objects[self.siting_on_a_chair.id].x, objects[self.siting_on_a_chair.id].y)
+            self.body:setX(0)
+            self.body:setTexture("assets/sprites/" .. self.sprite .. "/body" .. self.body_id .. "sit.png")
+            self.state = 3
+            self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyesAnim" .. self.eyes_id .. ".png")
+            self.eyes:setX(0)
+            self.standCount = 0
+            self.z = 3
+            self.rad = self.rad - math.rad(180)
+            self.siting_on_a_chair.state = 2
+        else
+            self.rad = math.atan2((objects[self.siting_on_a_chair.id].y - self.bodyPhy:getY()), (objects[self.siting_on_a_chair.id].x - self.bodyPhy:getX())) + math.rad(90)
+            self:moveFoward(dt, 30)
+        end
+    elseif self.siting_on_a_chair.state == 2 then
+        if m.isDown(2) then
+            self.z = 0
+            self.body:setX(0)
+            self.body:setTexture("assets/sprites/" .. self.sprite .. "/body" .. self.body_id .. ".png")
+            self.siting_on_a_chair.state = 3
+        end
+    elseif self.siting_on_a_chair.state == 3 then
+        if distanceFrom(self.bodyPhy:getX(), self.bodyPhy:getY(), objects[self.siting_on_a_chair.id].x, objects[self.siting_on_a_chair.id].y) > 8 then
+            self:create_fixture()
+            self.body:setX(0)
+            self.eyes:setX(0)
+            self.movementsBlocked = false
+            self.siting_on_a_chair.id = 0
+            self.siting_on_a_chair.state = 0
+        else
+            self:moveFoward(dt, 30)
+        end
+    end
 
     if self.light ~= nil then
         self.light.x, self.light.y = self.bodyPhy:getPosition()
@@ -124,10 +170,8 @@ function Player:update(dt, camera_rad)
         self.speed = 50
     end
 
-    -- Teleport:
-
     -- Movements:
-    if self.movementsBlocked == false then
+    if self.movementsBlocked == false or self.state == 3 then
         if k.isDown("w") then
             if k.isDown("a") then
                 self.rad = camera_rad - math.rad(45)
@@ -149,7 +193,9 @@ function Player:update(dt, camera_rad)
         elseif k.isDown("a") then
             self.rad = camera_rad - math.rad(90)
         end
+    end
 
+    if self.movementsBlocked == false then
         if toutch_buttons.movement.is_pressed == true then
             self.rad = camera_rad + toutch_buttons.movement.angle + math.rad(90)
             self.standCount = 0
@@ -157,7 +203,7 @@ function Player:update(dt, camera_rad)
             self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
         end
         
-        if k.isDown("w") or k.isDown("s") or k.isDown("a") or k.isDown("d") or toutch_buttons.movement.is_pressed == true then
+        if k.isDown("w") or k.isDown("s") or k.isDown("a") or k.isDown("d") or toutch_buttons.movement.is_pressed == true and self.siting_on_a_chair.state == 0 then
             self.state = 1
             local run_spd = 0
             if k.isDown("lshift") then run_spd = 20 end
@@ -182,7 +228,9 @@ function Player:update(dt, camera_rad)
             self.body:anim((self.speed+run_spd)/5, dt)
             self.eyes:setX(self.body.index_x/self.body.frame_w)
         else
-            self.state = 0
+            if self.state ~= 3 then
+                self.state = 0
+            end
             self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyesAnim" .. self.eyes_id .. ".png")
             self.body:setX(0)
             if self.standCount >= 10 then
@@ -213,6 +261,7 @@ function Player:update(dt, camera_rad)
 end
 
 function Player:moveFoward(dt, speed)
+    self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
     self.state = 1
     local run_spd = 0
     self.dx = (speed+run_spd)*math.cos(self.rad - math.rad(90))
@@ -228,7 +277,7 @@ function Player:moveFoward(dt, speed)
 end
 
 function Player:keypressed(key)
-    if key == "w" or key == "s" or key == "a" or key == "d" then
+    if key == "w" or key == "s" or key == "a" or key == "d" and self.siting_on_a_chair.state == 0 then
         self.standCount = 0
         self.eyes:setX(0)
         self.eyes:setTexture("assets/sprites/" .. self.sprite .. "/eyes" .. self.eyes_id .. ".png")
@@ -242,6 +291,27 @@ function Player:keypressed(key)
             self.light_switch = true
         end
     end
+    if key == "e" then
+        if self.state == 3 then
+            self.movementsBlocked = false
+            self.body:setX(0)
+            self.body:setTexture("assets/sprites/" .. self.sprite .. "/body" .. self.body_id .. ".png")
+            self.state = 0
+        else
+            self.movementsBlocked = true
+            self.body:setX(0)
+            self.body:setTexture("assets/sprites/" .. self.sprite .. "/body" .. self.body_id .. "sit.png")
+            self.state = 3
+        end
+    end
+end
+
+function Player:destroy_fixture()
+    self.fixture:destroy()
+end
+
+function Player:create_fixture()
+    self.fixture = love.physics.newFixture(self.bodyPhy, self.shape)
 end
 
 function Player:draw_weapon(camera_rad)
@@ -255,13 +325,13 @@ function Player:draw_weapon(camera_rad)
             dir = -1
             x = -2
         end
-        g.setColor(self.alpha, self.alpha, self.alpha)
+        g.setColor(self.color)
         if self.body:get_frame_x() == 0 or self.body:get_frame_x() == 32 then
             g.draw(items_img, items[self.inventory.items[self.item_equiped].id].quad, 
-                self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad-rotation, dir, 1, (8/2)+x, 9+y)
+                self.bodyPhy:getX()+model_render[self.z].dx, self.bodyPhy:getY()+model_render[self.z].dy, camera_rad-rotation, dir, 1, (8/2)+x, 9+y)
         else
             g.draw(items_img, items[self.inventory.items[self.item_equiped].id].quad, 
-                self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad-rotation, dir, 1, (8/2)+x, 8+y)
+                self.bodyPhy:getX()+model_render[self.z].dx, self.bodyPhy:getY()+model_render[self.z].dy, camera_rad-rotation, dir, 1, (8/2)+x, 8+y)
         end
     end
 end
@@ -276,8 +346,8 @@ function Player:draw(camera_rad)
     end
 
     if self.state == 2 then
-        g.setColor(self.alpha, self.alpha, self.alpha)
-        danim:draw("player_attack", self.bodyPhy:getX(), self.bodyPhy:getY(), self.rad, 1, 1, {1,1,1,self.alpha})
+        g.setColor(self.color)
+        danim:draw("player_attack", self.bodyPhy:getX(), self.bodyPhy:getY(), self.rad, 1, 1, self.color)
     end
 
     
@@ -289,11 +359,19 @@ function Player:draw(camera_rad)
     end
 
     g.setBlendMode("alpha", "premultiplied")
-    g.setColor(self.alpha, self.alpha, self.alpha)
-    g.draw(shadow, self.bodyPhy:getX(), self.bodyPhy:getY(), 0, 1, 1, shadow:getWidth()/2, shadow:getHeight()/2)
+    if self.state ~= 3 then
+        g.setColor(self.color)
+        g.draw(shadow, self.bodyPhy:getX(), self.bodyPhy:getY(), 0, 1, 1, shadow:getWidth()/2, shadow:getHeight()/2)
+    end
     g.setBlendMode("alpha")
-    self.body:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad, {self.alpha, self.alpha, self.alpha})
-    self.eyes:draw(self.bodyPhy:getX(), self.bodyPhy:getY(), camera_rad, {self.alpha, self.alpha, self.alpha})
+    self.body:draw(self.bodyPhy:getX()+model_render[self.z].dx, self.bodyPhy:getY()+model_render[self.z].dy, camera_rad, self.color)
+    if self.state == 3 then
+        self.eyes:draw(self.bodyPhy:getX()+model_render[self.z].dx-model_render[2].dx, 
+                        self.bodyPhy:getY()+model_render[self.z].dy-model_render[2].dy, 
+                        camera_rad, self.color)
+    else
+        self.eyes:draw(self.bodyPhy:getX()+model_render[self.z].dx, self.bodyPhy:getY()+model_render[self.z].dy, camera_rad, self.color)
+    end
 
     if self.body:get_frame_y() >= 0 * 16 and self.body:get_frame_y() <= 1 *16 or self.body:get_frame_y() == 7 * 16 then
         if self.is_swiming == false and self.state ~= 2 then

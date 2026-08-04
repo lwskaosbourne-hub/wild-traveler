@@ -68,11 +68,11 @@ function love.draw()
 	g.print(version.." | FPS: "..love.timer.getFPS(), g.getWidth() - (zoom*gui_scale)*64, g.getHeight() - (zoom*gui_scale)*8, 0, (zoom*gui_scale)/2, (zoom*gui_scale)/2)
 
 	if dev_gui == true then
-		g.print("Graphics zoom: "..zoom, zoom*5, zoom*50, 0, zoom/4, zoom/4)
-		g.print("Camera distance: "..camera_distance, zoom*5, zoom*55, 0, zoom/4, zoom/4)
-		g.print("Player position (X, Y): "..get_coord_x(player[player_id].bodyPhy:getX())..", "..get_coord_y(player[player_id].bodyPhy:getY()), zoom*5, zoom*60, 0, zoom/4, zoom/4)
-		g.print("Total objects: "..#objects, zoom*5, zoom*65, 0, zoom/4, zoom/4)
-		g.print("Visible objects: "..#visible_objects, zoom*5, zoom*70, 0, zoom/4, zoom/4)
+		g.print("Graphics zoom: "..zoom, zoom*5, zoom*30, 0, zoom/3, zoom/3)
+		g.print("Camera distance: "..camera_distance, zoom*5, zoom*35, 0, zoom/3, zoom/3)
+		g.print("Player position (X, Y): "..get_coord_x(player[player_id].bodyPhy:getX())..", "..get_coord_y(player[player_id].bodyPhy:getY()), zoom*5, zoom*40, 0, zoom/3, zoom/3)
+		g.print("Total objects: "..#objects.." | Collisions: "..world:getBodyCount(), zoom*5, zoom*45, 0, zoom/3, zoom/3)
+		g.print("Visible objects: "..#visible_objects, zoom*5, zoom*50, 0, zoom/3, zoom/3)
 	end
 end
 
@@ -116,9 +116,9 @@ function love.mousemoved(x, y, dx, dy)
 	if scene == "game" then
 		if relativeMode == true then
 			if dispositive == "pc" then
-				if player[player_id].movementsBlocked == false then
+				--if relativeMode == false then
 					cam:setAngle(cam:getAngle()+(dx*love.timer.getDelta()/10))
-				end
+				--end
 			end
 		end
 	end
@@ -129,9 +129,9 @@ function love.mousepressed(x, y, key)
 		if inventory_window == true then
 			inventory_buttonpressed(x, y, key)
 		else
-			if key == 1 and dispositive == "pc" then
+			if dispositive == "pc" then
 				player[player_id]:atk()
-				objects_interact()
+				objects_interact(key)
 			end
 		end
 	end
@@ -141,9 +141,9 @@ function love.touchmoved(id, x, y, dx, dy, pressure)
 	if scene == "game" then
 		if relativeMode == true then
 			if dispositive == "android" and x > g.getWidth()/2 then
-				if player[player_id].movementsBlocked == false then
+				--if relativeMode == false then
 					cam:setAngle(cam:getAngle()+(dx*love.timer.getDelta()/10))
-				end
+				--end
 			end
 		end
 	end
@@ -173,8 +173,10 @@ function love.touchpressed( id, x, y, dx, dy, pressure )
 			if inventory_window == true then
 				inventory_buttonpressed(x, y)
 			else
-				player[player_id]:atk()
-				objects_interact()
+				if distanceFrom(x, y, toutch_buttons.attack.x, toutch_buttons.attack.y) <= toutch_buttons.attack.size then
+					player[player_id]:atk()
+					objects_interact()
+				end
 			end
 		end
 	end
@@ -186,9 +188,7 @@ function love.resize(w, h)
 	if scene == "game" then
 		cam:setWindow(0, 0, w, h)
 		cam:setScale(zoom*camera_distance)
-		toutch_buttons.movement.x = zoom*toutch_buttons.movement.size+10
-		toutch_buttons.movement.y = g.getHeight() - (zoom*toutch_buttons.movement.size+10)
-		toutch_buttons.movement.rad = zoom*toutch_buttons.movement.size
+		touch_buttons_ini()
 		inventory_window_x = g.getWidth()/2
 		inventory_window_y = g.getHeight()/2
 		inventory_set()

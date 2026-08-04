@@ -113,6 +113,8 @@ void = Model(g.newImage("assets/models/void.png"), 16, 16)
 flower1 = Model(g.newImage("assets/models/flower1.png"), 16, 16)
 flower2 = Model(g.newImage("assets/models/flower2.png"), 16, 16)
 
+chair = Model(g.newImage("assets/models/chair.png"), 16, 16)
+
 function map_create_objects()
     for x = 1, #map[earlyMap].obj[1] do
         for y = 1, #map[earlyMap].obj do
@@ -145,6 +147,8 @@ function map_create_objects()
             elseif map[earlyMap].obj[y][x] == 24 then
                 new_object(camp_fire, x, y, 0, "camp_fire", 0, true,
                 light_system.addLight(get_x(x), get_y(y), 130, {1,0.5,0}, 1))
+            elseif map[earlyMap].obj[y][x] == 25 then
+                new_object(chair, x, y, 0, "chair", 0, true)
             elseif map[earlyMap].obj[y][x] == 28 then
                 table.insert(objects, {type = "cave_wall", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = cave_wall, collision = true})
             elseif map[earlyMap].obj[y][x] == 30 then
@@ -157,10 +161,12 @@ function map_create_objects()
 
     for i = 1, #objects do
         if objects[i].collision == true then
-            objects_collision[i] = {}
-            objects_collision[i].body = love.physics.newBody(world, objects[i].x, objects[i].y, "static")
-            objects_collision[i].shape = love.physics.newRectangleShape(16,16)
-            objects_collision[i].fixture = love.physics.newFixture(objects_collision[i].body, objects_collision[i].shape)
+            if objects_collision[i] == nil then
+                objects_collision[i] = {}
+                objects_collision[i].body = love.physics.newBody(world, objects[i].x, objects[i].y, "static")
+                objects_collision[i].shape = love.physics.newRectangleShape(16,16)
+                objects_collision[i].fixture = love.physics.newFixture(objects_collision[i].body, objects_collision[i].shape)
+            end
         end
     end
 end

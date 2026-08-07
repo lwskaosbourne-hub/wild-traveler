@@ -125,9 +125,11 @@ function map_create_objects()
             elseif map[earlyMap].obj[y][x] == 4 then
                 table.insert(objects, {type = "grass", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = grass, collision = false})
             elseif map[earlyMap].obj[y][x] == 5 then
-                table.insert(objects, {type = "tree", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = Model(tree2, 64, 64, {speed = 20}), collision = true})
+                new_object(Model(tree2, 64, 64, {speed = 20}), x, y, 0, "tree", 0, true)
+                --table.insert(objects, {type = "tree", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = Model(tree2, 64, 64, {speed = 20}), collision = true})
             elseif map[earlyMap].obj[y][x] == 6 then
-                table.insert(objects, {type = "tree", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = Model(tree, 64, 64, {speed = 20}), collision = true})
+                new_object(Model(tree, 64, 64, {speed = 20}), x, y, 0, "tree", 0, true)
+                --table.insert(objects, {type = "tree", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = Model(tree, 64, 64, {speed = 20}), collision = true})
             elseif map[earlyMap].obj[y][x] == 7 then
                 table.insert(objects, {type = "rock", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = Model(rock, 16, 16, {speed = 20}), collision = true})
             elseif map[earlyMap].obj[y][x] == 8 then
@@ -139,11 +141,9 @@ function map_create_objects()
             elseif map[earlyMap].obj[y][x] == 21 then
                 table.insert(objects, {type = "fall", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = fall, collision = true})
             elseif map[earlyMap].obj[y][x] == 22 then
-                table.insert(objects, {type = "flower", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = flower1,
-                light = light_system.addLight(get_x(x), get_y(y), 64, {get_rgb(204, 126, 157)}, 0.5), collision = false})
+                table.insert(objects, {type = "flower", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = flower1})
             elseif map[earlyMap].obj[y][x] == 23 then
-                table.insert(objects, {type = "flower", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = flower2,
-                light = light_system.addLight(get_x(x), get_y(y), 64, {get_rgb(127, 255, 255)}, 0.5), collision = false})
+                table.insert(objects, {type = "flower", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = flower2})
             elseif map[earlyMap].obj[y][x] == 24 then
                 new_object(camp_fire, x, y, 0, "camp_fire", 0, true,
                 light_system.addLight(get_x(x), get_y(y), 130, {1,0.5,0}, 1))

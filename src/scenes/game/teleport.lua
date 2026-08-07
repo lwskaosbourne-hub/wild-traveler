@@ -33,6 +33,7 @@ function teleport_update(dt)
                 
                     transiting_map = true
                 else
+                    player[player_id].is_walking = true
                     player[player_id]:moveFoward(dt, 10)
                 end
 
@@ -55,6 +56,7 @@ function teleport_update(dt)
         if fade_alpha <= 0 then
             player[player_id].movementsBlocked = false
             collectgarbage("collect")
+            player[player_id].is_walking = false
             player[player_id].color[4] = 1
             transiting_map = false
         else

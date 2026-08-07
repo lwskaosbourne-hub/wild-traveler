@@ -29,6 +29,14 @@ function new_object(src, x, y, z, t, rad, collision, light)
                 (objects[id].src:getWidth()/2) - 10, 8
             )
             objects_collision[id].fixture = love.physics.newFixture(objects_collision[id].body, objects_collision[id].shape)
+        elseif t == "tree" then
+            objects_collision[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
+            objects_collision[id].shape = love.physics.newCircleShape(8)
+            objects_collision[id].fixture = love.physics.newFixture(objects_collision[id].body, objects_collision[id].shape)
+        elseif t == "chair" then
+            objects_collision[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
+            objects_collision[id].shape = love.physics.newRectangleShape(6, 6)
+            objects_collision[id].fixture = love.physics.newFixture(objects_collision[id].body, objects_collision[id].shape)
         else
             objects_collision[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
             objects_collision[id].shape = love.physics.newRectangleShape(objects[id].src:getDimensions())
@@ -122,6 +130,7 @@ function objects_update(dt)
             objects[i].src.color = ambient_color
         elseif objects[i].type == "droped_iten" then
             if objects[i].src.player_get_iten == true then
+                game_message(items[objects[i].src.iten_id].name.." added to inventory.")
                 player[objects[i].src.player_id_following]:addIten(objects[i].src.iten_id)
                 table.remove(objects, i)
                 return
@@ -174,16 +183,16 @@ end
 function objects_interact(key)
     -- Confere se algum jogador está interagindo com algum objeto no cenário
     for i = 1, #player do
-        if player[i].state == 2 then
-            local p_x, p_y = get_coord_x(player[i].interactive_point.x), get_coord_y(player[i].interactive_point.y)
+        local p_x, p_y = get_coord_x(player[i].interactive_point.x), get_coord_y(player[i].interactive_point.y)
 
+        if key == 1 then
             for o = 1, #objects do
                 if objects[o].type == "tree" and items[player[i].item_equiped].class == "exe" and key == 1 then
                     if player[i].interactive_point.x >= objects[o].x - 8 and 
                     player[i].interactive_point.x <= objects[o].x + 8 and
                     player[i].interactive_point.y >= objects[o].y - 8 and 
                     player[i].interactive_point.y <= objects[o].y + 8 then
-                        if objects[o].hp <= 0 then
+                        if objects[o].hp <= 1 then
                             local wood_amount = math.random(8, 15)
                             local apple_amount = math.random(0,5)
                             for w = 1, wood_amount do
@@ -207,7 +216,7 @@ function objects_interact(key)
                         else
                             if danim:getFrame("player_attack") == 0 then
                                 objects[o].src:animate(1)
-                                player[i].energy = player[i].energy - 1
+                                player[i].energy = player[i].energy - 0.2
                                 objects[o].hp = objects[o].hp - 1
                             end
                         end
@@ -218,7 +227,7 @@ function objects_interact(key)
                     player[i].interactive_point.x <= objects[o].x + 8 and
                     player[i].interactive_point.y >= objects[o].y - 8 and 
                     player[i].interactive_point.y <= objects[o].y + 8 then
-                        if objects[o].hp <= 0 then
+                        if objects[o].hp <= 1 then
                             local rock_amount = math.random(3, 10)
                             for r = 1, rock_amount do
                                 local x = (objects[o].x - 16) + math.random(0, 32)
@@ -234,19 +243,23 @@ function objects_interact(key)
                         else
                             if danim:getFrame("player_attack") == 0 then
                                 objects[o].src:animate(1)
-                                player[i].energy = player[i].energy - 1
+                                player[i].energy = player[i].energy - 0.2
                                 objects[o].hp = objects[o].hp - 1
                             end
                         end
                         break
                     end
-                elseif objects[o].type == "chair" and key == 2 then
+                end
+            end
+        elseif key == 2 then
+            for o = 1, #objects do
+                if objects[o].type == "chair" and key == 2 then
                     if player[i].interactive_point.x >= objects[o].x - 8 and 
                     player[i].interactive_point.x <= objects[o].x + 8 and
                     player[i].interactive_point.y >= objects[o].y - 8 and 
                     player[i].interactive_point.y <= objects[o].y + 8 then
                         player[i]:destroy_fixture()
-                        --player[i].movementsBlocked = true
+                        player[i].movementsBlocked = true
                         player[i].siting_on_a_chair.state = 1
                         player[i].siting_on_a_chair.id = o
                     end

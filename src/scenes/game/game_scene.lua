@@ -64,7 +64,7 @@ function game_load()
 
 	player = {}
 	--player[1] = Player(49, 15, 1, "cat", 2, 1)
-	player[1] = Player(47, 97, earlyMap, "cat", 2, 1)
+	player[1] = Player("Floquinho", 47, 97, earlyMap, "cat", 2, 1)
 	player[1].rad = math.rad(180)
 
 	inventory_set()
@@ -96,6 +96,20 @@ function game_load()
 	danim:new("player_attack", atk_image, 6, 1)
 
 	insert_objects = false
+
+	message = {
+		text = "",
+		color = {1,1,1,0}
+	}
+end
+
+function game_message(text, c)
+	local color = c or {1,1,1}
+	message.text = text
+	message.color[1] = color[1] or 1
+	message.color[2] = color[2] or 1
+	message.color[3] = color[3] or 1
+	message.color[4] = 1
 end
 
 function game_update(dt)
@@ -115,6 +129,10 @@ function game_update(dt)
 	end
 	teleport_update(dt)
 	update_hud(dt)
+
+	if message.color[4] > 0 then
+		message.color[4] = message.color[4] - (dt/2)
+	end
 
 	-- Day/Night process:
 	--if time.count >= 1 then
@@ -237,6 +255,10 @@ function game_draw()
 			end
 		end
 	end)
+
+	-- Screen Color and Lights:
+	light_system.draw(cam)
+
 	if dispositive == "android" then
 		if inventory_window == false then
 			g.setColor(1,1,1)
@@ -248,13 +270,17 @@ function game_draw()
 		g.setColor(1,1,1)
 		g.draw(bag_icon, g.getWidth() - ((bag_icon:getWidth()+2)*zoom), 2*zoom, 0, zoom, zoom)
 	end
-	-- Screen Color and Lights:
-	light_system.draw(cam)
 
 	draw_hud()
 
 	if inventory_window == true then
 		inventory_draw()
+	end
+
+	-- System messages:
+	if message.color[4] > 0 then
+		g.setColor(message.color)
+		g.print(message.text, zoom*2, g.getHeight() - (zoom*6), 0, zoom/3, zoom/3)
 	end
 end
 

@@ -18,7 +18,7 @@ g.setDefaultFilter("nearest", "nearest")
 --local font = love.graphics.newImageFont( "assets/font.png", [[ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ ]] )
 --love.graphics.setFont( font )
 
-local font = g.newFont("determination.ttf")
+font = g.newFont("determination.ttf")
 font:setFilter("nearest", "nearest")
 font:setLineHeight( font:getLineHeight()*2 )
 g.setFont(font)
@@ -129,8 +129,8 @@ function love.mousepressed(x, y, key)
 		if inventory_window == true then
 			inventory_buttonpressed(x, y, key)
 		else
-			if dispositive == "pc" then
-				player[player_id]:atk()
+			if dispositive == "pc" and player[player_id].movementsBlocked == false then
+				if key == 1 then player[player_id]:atk() end
 				objects_interact(key)
 			end
 		end

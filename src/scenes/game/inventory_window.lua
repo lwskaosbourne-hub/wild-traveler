@@ -61,16 +61,39 @@ function inventory_buttonpressed(x, y, key)
     if key_pressed == 1 then
         if x >= inventory_buttons.equip.x and x <= inventory_buttons.equip.x + inventory_buttons.equip.w and
         y >= inventory_buttons.equip.y and y <= inventory_buttons.equip.y + inventory_buttons.equip.h then
+            local itemInUse = items[player[player_id].inventory.items[selected_box].id]
             -- Equip/use item by the selected_box ID:
-            if selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and items[player[player_id].inventory.items[selected_box].id].type == "equipment" then
+            if selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and itemInUse.type == "equipment" then
                 -- Equipments:
                 if player[player_id].item_equiped == selected_box then
                     player[player_id].item_equiped = 0
                 else
                     player[player_id].item_equiped = selected_box
                 end
-            elseif selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and items[player[player_id].inventory.items[selected_box].id].type == "potion" then
-                -- Potions:
+            elseif selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and itemInUse.type == "heal" then
+                -- Potions and Food:
+                if itemInUse.class == "potion" then
+                    if player[player_id].hp + itemInUse.use_value >= player[player_id].hp_max then
+                        player[player_id].hp = player[player_id].hp_max
+                    else
+                        player[player_id].hp = player[player_id].hp + itemInUse.use_value
+                    end
+                elseif itemInUse.class == "food" then
+                    if player[player_id].energy + itemInUse.use_value >= player[player_id].energy_max then
+                        player[player_id].energy = player[player_id].energy_max
+                    else
+                        player[player_id].energy = player[player_id].energy + itemInUse.use_value
+                    end
+                end
+                player[player_id]:remove_iten(selected_box, 1)
+                --return
+            elseif selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and itemInUse.type == "secondary" then
+                -- Secondary hand itens:
+                if player[player_id].secondary_item_equiped == selected_box then
+                    player[player_id].secondary_item_equiped = 0
+                else
+                    player[player_id].secondary_item_equiped = selected_box
+                end
             end
         elseif x >= inventory_window_x + (((back_img:getWidth()/2)-10)*inventory_window_size) and -- Exit button
             x <= inventory_window_x + (((back_img:getWidth()/2))*inventory_window_size) and
@@ -97,10 +120,18 @@ function inventory_draw()
     
     -- Item Boxes:
     for i = 1, #boxes do
-        if selected_box == i then
-            g.setColor(0,0,0,0.5)
+        if dispositive == "pc" and i <= 10 then
+            if selected_box == i then
+                g.setColor(1,1,1,0.1)
+            else
+                g.setColor(1,1,1,0.8)
+            end
         else
-            g.setColor(1,1,1)
+            if selected_box == i then
+                g.setColor(1,1,1,0.1)
+            else
+                g.setColor(1,1,1,0.5)
+            end
         end
         g.draw(items_base_img, boxes[i].x, boxes[i].y, 0, inventory_window_size, inventory_window_size, items_base_img:getWidth()/2, items_base_img:getHeight()/2)
         
@@ -115,9 +146,16 @@ function inventory_draw()
             g.print(player[player_id].inventory.items[i].n, boxes[i].x + (inventory_window_size*2), boxes[i].y + (inventory_window_size), 0, inventory_window_size/3, inventory_window_size/3)
         end
 
-        if i == player[player_id].item_equiped then
+        if i == player[player_id].item_equiped or i == player[player_id].secondary_item_equiped then
             g.setColor(1,1,1,0.5)
             g.print("E", boxes[i].x + (inventory_window_size*2), boxes[i].y + (inventory_window_size), 0, inventory_window_size/3, inventory_window_size/3)
+        end
+
+        if dispositive == "pc" and i <= 10 then
+            local hotkey = i
+            if i == 10 then hotkey = 0 end
+            g.setColor(1,1,1,0.8)
+            g.print(hotkey, boxes[i].x - (inventory_window_size), boxes[i].y - (inventory_window_size*11.5), 0, inventory_window_size/2.5, inventory_window_size/2.5)
         end
     end
 
@@ -125,28 +163,46 @@ function inventory_draw()
     if selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 then
         local x = inventory_window_x - (inventory_window_size*68)
         local y = inventory_window_y + (inventory_window_size*29)
-        g.setColor(1,1,1)
+        g.setColor(0,0,0)
         if player[player_id].inventory.items[selected_box].n > 1 then
             g.print(" - " .. items[player[player_id].inventory.items[selected_box].id].name .. " (" .. player[player_id].inventory.items[selected_box].n .. "):", x, y, 0, inventory_window_size/2.5, inventory_window_size/2.5)
         else
             g.print(" - " .. items[player[player_id].inventory.items[selected_box].id].name .. ":", x, y, 0, inventory_window_size/2.5, inventory_window_size/2.5)
         end
+        g.setColor(0,0,0,0.6)
+        g.print(items[player[player_id].inventory.items[selected_box].id].desc, x + (inventory_window_size*2), y + (inventory_window_size*7), 0, inventory_window_size/3, inventory_window_size/3)
     end
 
 	g.setColor(1,1,1)
-    g.draw(inventory_buttons.equip.img, inventory_buttons.equip.x, inventory_buttons.equip.y, 0, inventory_window_size, inventory_window_size)
+    g.draw(inventory_buttons.equip.img, inventory_buttons.equip.x - (inventory_window_size*1.5), inventory_buttons.equip.y - inventory_window_size, 0, inventory_window_size, inventory_window_size)
     if selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and items[player[player_id].inventory.items[selected_box].id].type == "equipment" then
-        g.setColor(1,1,1)
-        if player[1].item_equiped == selected_box then
+        g.setColor(0,0,0)
+        if player[player_id].item_equiped == selected_box then
             g.print("UNEQUIP", inventory_buttons.equip.x + inventory_window_size, inventory_buttons.equip.y + (inventory_window_size*1.5), 0, inventory_window_size/2.8, inventory_window_size/2.8)
         else
             g.print("EQUIP", inventory_buttons.equip.x + (inventory_window_size*2.5), inventory_buttons.equip.y + inventory_window_size, 0, inventory_window_size/2.5, inventory_window_size/2.5)
         end
-    elseif selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and items[player[player_id].inventory.items[selected_box].id].type == "potion" then
-        g.setColor(1,1,1)
+    elseif selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and items[player[player_id].inventory.items[selected_box].id].type == "secondary" then
+        g.setColor(0,0,0)
+        if player[player_id].secondary_item_equiped == selected_box then
+            g.print("UNEQUIP", inventory_buttons.equip.x + inventory_window_size, inventory_buttons.equip.y + (inventory_window_size*1.5), 0, inventory_window_size/2.8, inventory_window_size/2.8)
+        else
+            g.print("EQUIP", inventory_buttons.equip.x + (inventory_window_size*2.5), inventory_buttons.equip.y + inventory_window_size, 0, inventory_window_size/2.5, inventory_window_size/2.5)
+        end
+    elseif selected_box > 0 and player[player_id].inventory.items[selected_box].id > 0 and items[player[player_id].inventory.items[selected_box].id].type == "heal" then
+        g.setColor(0,0,0)
         g.print("USE", inventory_buttons.equip.x + (inventory_window_size*4.5), inventory_buttons.equip.y + inventory_window_size, 0, inventory_window_size/2.5, inventory_window_size/2.5)
     else
-        g.setColor(1,1,1,0.5)
+        g.setColor(0,0,0,0.5)
         g.print("...", inventory_buttons.equip.x + (inventory_window_size*7.5), inventory_buttons.equip.y + inventory_window_size, 0, inventory_window_size/2.5, inventory_window_size/2.5)
     end
+
+    -- Player info:
+    local player_info_x = inventory_window_x - (inventory_window_size*68)
+    local player_info_y = inventory_window_y - (inventory_window_size*45)
+    g.setColor(1,1,1)
+    g.print("* "..player[player_id].name.." *", inventory_window_x - ((player[player_id].name_text:getWidth()*inventory_window_size)/2) + (inventory_window_size*10), player_info_y, 0, inventory_window_size/2, inventory_window_size/2)
+    g.print("Level: ", player_info_x, player_info_y + (inventory_window_size*10), 0, inventory_window_size/2.5, inventory_window_size/2.5)
+    g.print("Healt: "..math.floor(player[player_id].hp).." / "..player[player_id].hp_max, player_info_x, player_info_y + (inventory_window_size*15), 0, inventory_window_size/2.5, inventory_window_size/2.5)
+    g.print("Energy: "..math.floor(player[player_id].energy).." / "..player[player_id].energy_max, player_info_x, player_info_y + (inventory_window_size*20), 0, inventory_window_size/2.5, inventory_window_size/2.5)
 end

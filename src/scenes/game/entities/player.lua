@@ -3,7 +3,7 @@ local Player = Object:extend()
 
 local shadow = g.newImage("assets/shadow.png")
 
-function Player:new(name, x, y, map, sprite, body_id, eyes_id)
+function Player:new(name, x, y, map, sprite, body_id)
     self.name = name
     self.name_text = g.newText(font, name)
     self.hp_max = 100
@@ -23,10 +23,10 @@ function Player:new(name, x, y, map, sprite, body_id, eyes_id)
     self.map = map
     self.standCount = 1
     self.body_id = body_id
-    self.eyes_id = eyes_id
+    self.eyes_id = body_id
     self.sprite = sprite
     self.body = Sprite("player", "assets/sprites/" .. sprite .. "/body" .. body_id .. ".png", 4, 8)
-    self.eyes = Sprite("player", "assets/sprites/" .. sprite .. "/eyes" .. eyes_id .. ".png", 4, 8)
+    self.eyes = Sprite("player", "assets/sprites/" .. sprite .. "/eyes" .. body_id .. ".png", 4, 8)
     self.lamp = Sprite("player", "assets/sprites/lamp.png", 4, 8)
     self.state = 0 -- 0 = Static, 1 = Walking, 2 = Attack, 3 = Sit
     self.movementsBlocked = false
@@ -220,7 +220,7 @@ function Player:update(dt, camera_rad)
     self.lamp:setY(math.floor((relativeAngle + 22.5) / 45) % 8)
 
     -- Swiming:
-    if map[earlyMap].grid[get_coord_y(self.y)][get_coord_x(self.x)] >= 10 and map[earlyMap].grid[get_coord_y(self.y)][get_coord_x(self.x)] <= 18 then
+    if is_water(get_coord_y(self.x), get_coord_y(self.y)) then
         self.body.y_divide = 1.6
         self.eyes.y_divide = 1.6
         self.is_swiming = true

@@ -13,12 +13,17 @@ function new_object(src, x, y, z, t, rad, collision, light)
     objects[id].rad = rad or 0
     objects[id].src = src
     objects[id].light = light or nil
+    
+    if t == "tree" or t == "rock" then
+        objects[id].hp = 5
+    end
 
     if collision == true then
-        objects_collision[id] = {}
+        objects[id].collision_id = #objects_collision + 1
+        objects_collision[objects[id].collision_id] = {}
         if t == "cabin" then
-            objects_collision[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
-            objects_collision[id].shape = love.physics.newChainShape(true,
+            objects_collision[objects[id].collision_id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
+            objects_collision[objects[id].collision_id].shape = love.physics.newChainShape(true,
                 objects[id].src:getWidth()/2 - 10, -8,
                 objects[id].src:getWidth()/2, -8,
                 objects[id].src:getWidth()/2, -objects[id].src:getHeight()/2,
@@ -28,19 +33,19 @@ function new_object(src, x, y, z, t, rad, collision, light)
                 objects[id].src:getWidth()/2, 8,
                 (objects[id].src:getWidth()/2) - 10, 8
             )
-            objects_collision[id].fixture = love.physics.newFixture(objects_collision[id].body, objects_collision[id].shape)
+            objects_collision[objects[id].collision_id].fixture = love.physics.newFixture(objects_collision[objects[id].collision_id].body, objects_collision[objects[id].collision_id].shape)
         elseif t == "tree" then
-            objects_collision[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
-            objects_collision[id].shape = love.physics.newCircleShape(8)
-            objects_collision[id].fixture = love.physics.newFixture(objects_collision[id].body, objects_collision[id].shape)
+            objects_collision[objects[id].collision_id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
+            objects_collision[objects[id].collision_id].shape = love.physics.newCircleShape(8)
+            objects_collision[objects[id].collision_id].fixture = love.physics.newFixture(objects_collision[objects[id].collision_id].body, objects_collision[objects[id].collision_id].shape)
         elseif t == "chair" then
-            objects_collision[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
-            objects_collision[id].shape = love.physics.newRectangleShape(6, 6)
-            objects_collision[id].fixture = love.physics.newFixture(objects_collision[id].body, objects_collision[id].shape)
+            objects_collision[objects[id].collision_id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
+            objects_collision[objects[id].collision_id].shape = love.physics.newRectangleShape(6, 6)
+            objects_collision[objects[id].collision_id].fixture = love.physics.newFixture(objects_collision[objects[id].collision_id].body, objects_collision[objects[id].collision_id].shape)
         else
-            objects_collision[id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
-            objects_collision[id].shape = love.physics.newRectangleShape(objects[id].src:getDimensions())
-            objects_collision[id].fixture = love.physics.newFixture(objects_collision[id].body, objects_collision[id].shape)
+            objects_collision[objects[id].collision_id].body = love.physics.newBody(world, objects[id].x, objects[id].y, "static")
+            objects_collision[objects[id].collision_id].shape = love.physics.newRectangleShape(objects[id].src:getDimensions())
+            objects_collision[objects[id].collision_id].fixture = love.physics.newFixture(objects_collision[objects[id].collision_id].body, objects_collision[objects[id].collision_id].shape)
         end
     end
 end
@@ -78,6 +83,10 @@ function objects_ini()
     end
 
     map_create_objects()
+
+    if earlyMap == 1 then
+        atmosphere_init()
+    end
 
     --visible_objects = {}
 
@@ -208,8 +217,7 @@ function objects_interact(key)
                                 end
                             end
                             remove_object_from_map(get_coord_x(objects[o].x), get_coord_y(objects[o].y))
-                            objects_collision[o].fixture:destroy()
-                            table.remove(objects_collision, o)
+                            objects_collision[objects[o].collision_id].fixture:destroy()
                             objects[o].src:animate(1)
                             objects[o].collision = false
                             table.remove(objects, o)
@@ -235,8 +243,7 @@ function objects_interact(key)
                                 new_drop(7, x, y, 16)
                             end
                             remove_object_from_map(get_coord_x(objects[o].x), get_coord_y(objects[o].y))
-                            objects_collision[o].fixture:destroy()
-                            table.remove(objects_collision, o)
+                            objects_collision[objects[o].collision_id].fixture:destroy()
                             objects[o].src:animate(1)
                             objects[o].collision = false
                             table.remove(objects, o)

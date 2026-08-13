@@ -15,7 +15,9 @@ for m = 1, maps_total do
     map[m] = {
         grid = {},
         obj = {},
-        teleport = {}
+        teleport = {},
+        width = load_map.width,
+        height = load_map.height
     }
 
     local count = 1
@@ -93,6 +95,7 @@ end
 
 -- Models textures:
 montain = Model(g.newImage("assets/models/montain.png"), 16, 16)
+montain_wall = Model(g.newImage("assets/models/montain_wall.png"), 16, 16)
 montain_water = Model(g.newImage("assets/models/montain_water.png"), 16, 16)
 tree = g.newImage("assets/models/tree.png")
 tree2 = g.newImage("assets/models/tree2.png")
@@ -114,16 +117,17 @@ flower1 = Model(g.newImage("assets/models/flower1.png"), 16, 16)
 flower2 = Model(g.newImage("assets/models/flower2.png"), 16, 16)
 
 chair = Model(g.newImage("assets/models/chair.png"), 16, 16)
+trunk = Model(g.newImage("assets/models/trunk.png"), 16, 16)
 
 function map_create_objects()
     for x = 1, #map[earlyMap].obj[1] do
         for y = 1, #map[earlyMap].obj do
             if map[earlyMap].obj[y][x] == 2 then
-                table.insert(objects, {type = "model", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = montain, collision = true})
+                new_object(montain_wall, x, y, 0, "model", 0, true)
             elseif map[earlyMap].obj[y][x] == 3 then
-                table.insert(objects, {type = "model", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = montain_cave, collision = false})
+                new_object(montain_cave, x, y, 0, "model", 0, false)
             elseif map[earlyMap].obj[y][x] == 4 then
-                table.insert(objects, {type = "grass", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = grass, collision = false})
+                new_object(grass, x, y, 0, "grass", 0, false)
             elseif map[earlyMap].obj[y][x] == 5 then
                 new_object(Model(tree2, 64, 64, {speed = 20}), x, y, 0, "tree", 0, true)
                 --table.insert(objects, {type = "tree", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = Model(tree2, 64, 64, {speed = 20}), collision = true})
@@ -131,41 +135,33 @@ function map_create_objects()
                 new_object(Model(tree, 64, 64, {speed = 20}), x, y, 0, "tree", 0, true)
                 --table.insert(objects, {type = "tree", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = Model(tree, 64, 64, {speed = 20}), collision = true})
             elseif map[earlyMap].obj[y][x] == 7 then
-                table.insert(objects, {type = "rock", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = Model(rock, 16, 16, {speed = 20}), collision = true})
+                new_object(Model(rock, 16, 16, {speed = 20}), x, y, 0, "rock", 0, true)
             elseif map[earlyMap].obj[y][x] == 8 then
-                table.insert(objects, {type = "water_rock", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = Model(water_rock, 16, 16), collision = true})
+                new_object(Model(water_rock, 16, 16), x, y, 0, "water_rock", 0, true)
             elseif map[earlyMap].obj[y][x] == 9 then
-                table.insert(objects, {type = "void", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = void, collision = true})
+                new_object(void, x, y, 0, "void", 0, true)
             elseif map[earlyMap].obj[y][x] == 20 then
-                table.insert(objects, {type = "montain_water", x = get_x(x), y = get_y(y), z = 35, rad = 0, src = montain_water, collision = false})
+                new_object(montain_water, x, y, 35, "montain_water", 0, false)
             elseif map[earlyMap].obj[y][x] == 21 then
-                table.insert(objects, {type = "fall", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = fall, collision = true})
+                new_object(fall, x, y, 0, "fall", 0, true)
             elseif map[earlyMap].obj[y][x] == 22 then
-                table.insert(objects, {type = "flower", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = flower1})
+                new_object(flower1, x, y, 0, "flower", 0, false)
             elseif map[earlyMap].obj[y][x] == 23 then
-                table.insert(objects, {type = "flower", x = get_x(x), y = get_y(y), z = 0, rad = 0, hp = 5, src = flower2})
+                new_object(flower2, x, y, 0, "flower", 0, false)
             elseif map[earlyMap].obj[y][x] == 24 then
                 new_object(camp_fire, x, y, 0, "camp_fire", 0, true,
                 light_system.addLight(get_x(x), get_y(y), 130, {1,0.5,0}, 1))
             elseif map[earlyMap].obj[y][x] == 25 then
                 new_object(chair, x, y, 0, "chair", 0, true)
             elseif map[earlyMap].obj[y][x] == 28 then
-                table.insert(objects, {type = "cave_wall", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = cave_wall, collision = true})
+                new_object(cave_wall, x, y, 0, "cave_wall", 0, true)
             elseif map[earlyMap].obj[y][x] == 30 then
-                --table.insert(objects, {type = "cave_exit", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = cave_exit_base, collision = false})
-                table.insert(objects, {type = "cave_exit", x = get_x(x), y = get_y(y), z = 0, rad = 0, src = cave_exit_light, collision = false,
-                light = light_system.addLight(get_x(x), get_y(y), 120, {1, 1, 1}, 1)})
-            end
-        end
-    end
-
-    for i = 1, #objects do
-        if objects[i].collision == true then
-            if objects_collision[i] == nil then
-                objects_collision[i] = {}
-                objects_collision[i].body = love.physics.newBody(world, objects[i].x, objects[i].y, "static")
-                objects_collision[i].shape = love.physics.newRectangleShape(16,16)
-                objects_collision[i].fixture = love.physics.newFixture(objects_collision[i].body, objects_collision[i].shape)
+                new_object(cave_exit_light, x, y, 0, "cave_exit", 0, false,
+                light_system.addLight(get_x(x), get_y(y), 120, {1, 1, 1}, 1))
+            elseif map[earlyMap].obj[y][x] == 31 then
+                new_object(trunk, x, y, 0, "chair", 0, true)
+            elseif map[earlyMap].obj[y][x] == 32 then
+                new_object(montain, x, y, 35, "montain", 0, false)
             end
         end
     end
@@ -193,7 +189,13 @@ local swim_image = g.newImage("assets/swiming.png")
 danim:new("swim", swim_image, 4, 1)
 
 function is_water(x, y)
-    if map[earlyMap].grid[y][x] >= 10 and map[earlyMap].grid[y][x] <= 18 or map[earlyMap].grid[y][x] == 8 then
+    if map[earlyMap].grid[y][x] >= 10 and map[earlyMap].grid[y][x] <= 18 then
+        return true
+    elseif map[earlyMap].grid[y][x] == 8 then
+        return true
+    elseif map[earlyMap].grid[y][x] >= 26 and map[earlyMap].grid[y][x] <= 27 then
+        return true
+    elseif map[earlyMap].grid[y][x] >= 35 and map[earlyMap].grid[y][x] <= 36 then
         return true
     else
         return false

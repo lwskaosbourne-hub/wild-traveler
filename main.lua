@@ -23,6 +23,11 @@ font:setFilter("nearest", "nearest")
 font:setLineHeight( font:getLineHeight()*2 )
 g.setFont(font)
 
+cursor = love.mouse.newCursor( "assets/cursor.png", 0, 0 )
+cursor_pressed = love.mouse.newCursor( "assets/cursor_pressed.png", 0, 0 )
+love.mouse.setCursor( cursor )
+
+
 function get_rgb(r, g, b)
 	return (r/255), (g/255), (b/255)
 end
@@ -117,7 +122,17 @@ function love.mousemoved(x, y, dx, dy)
 		if relativeMode == true then
 			if dispositive == "pc" then
 				--if relativeMode == false then
-					cam:setAngle(cam:getAngle()+(dx*love.timer.getDelta()/10))
+					--update_sun(love.timer.getDelta())
+					local delta_rotacao = dx * love.timer.getDelta() / 10
+
+					-- Soma com o ângulo atual
+					local novo_angulo = cam:getAngle() + delta_rotacao
+
+					-- O pulo do gato: Normaliza o ângulo para mantê-lo sempre entre -PI e PI
+					novo_angulo = (novo_angulo + math.pi) % (math.pi * 2) - math.pi
+
+					-- Aplica o novo ângulo na câmera
+					cam:setAngle(novo_angulo)
 				--end
 			end
 		end
@@ -125,6 +140,7 @@ function love.mousemoved(x, y, dx, dy)
 end
 
 function love.mousepressed(x, y, key)
+	love.mouse.setCursor( cursor_pressed )
 	if scene == "game" then
 		if inventory_window == true then
 			inventory_buttonpressed(x, y, key)
@@ -137,11 +153,16 @@ function love.mousepressed(x, y, key)
 	end
 end
 
+function love.mousereleased( x, y, button, istouch, presses )
+	love.mouse.setCursor( cursor )
+end
+
 function love.touchmoved(id, x, y, dx, dy, pressure)
 	if scene == "game" then
 		if relativeMode == true then
 			if dispositive == "android" and x > g.getWidth()/2 then
 				--if relativeMode == false then
+					--update_sun(love.timer.getDelta())
 					cam:setAngle(cam:getAngle()+(dx*love.timer.getDelta()/10))
 				--end
 			end

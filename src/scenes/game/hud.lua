@@ -33,5 +33,5 @@ function draw_hud()
         minutes = math.floor(time.minutes)
     end
     g.setColor(1,1,1)
-    g.print(hour..":"..minutes, hud_scale + (hud_scale*10), hud_scale + (hud_scale*19), 0, hud_scale/1.5, hud_scale/1.5)
+    g.print(hour..":"..minutes, hud_scale + (hud_scale*12), hud_scale + (hud_scale*20), 0, hud_scale/1.8, hud_scale/1.8)
 end

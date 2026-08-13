@@ -25,6 +25,7 @@ light_system.load(g.getWidth(), g.getHeight())
 require "src/scenes/game/day_cicle"
 require "src/scenes/game/objects"
 require "src/scenes/game/teleport"
+require "src/scenes/game/atmosphere"
 
 -- Enable/Disable Shadows (0 -> 'disabled', 1 -> 'enabled'):
 shadows = 0
@@ -64,7 +65,7 @@ function game_load()
 
 	player = {}
 	--player[1] = Player(49, 15, 1, "cat", 2, 1)
-	player[1] = Player("Floquinho", 47, 97, earlyMap, "cat", 2, 1)
+	player[1] = Player("Floquinho", 47, 97, earlyMap, "cat", 2)
 	player[1].rad = math.rad(180)
 
 	inventory_set()
@@ -82,7 +83,7 @@ function game_load()
 	bag_icon = g.newImage("assets/bag.png")
 
 	time = {
-		hour = 15,
+		hour = 20,
 		hour_max = 23,
 		minutes = 0,
 		minutes_max = 60,
@@ -101,6 +102,26 @@ function game_load()
 		text = "",
 		color = {1,1,1,0}
 	}
+
+	sun_light = g.newImage("assets/sun_light.png")
+	sun_radius = 1
+	sun_direction = 1
+end
+
+function update_sun(dt)
+	if sun_direction == 1 then
+		if sun_radius >= 1.5 then
+			sun_direction = 0
+		else
+			sun_radius = sun_radius + (dt/5)
+		end
+	else
+		if sun_radius <= 1 then
+			sun_direction = 1
+		else
+			sun_radius = sun_radius - (dt/5)
+		end
+	end
 end
 
 function game_message(text, c)
@@ -133,6 +154,12 @@ function game_update(dt)
 	if message.color[4] > 0 then
 		message.color[4] = message.color[4] - (dt/2)
 	end
+	
+	if earlyMap == 1 then
+		night_atmosphere_update(dt)
+	end
+
+	--update_sun(dt)
 
 	-- Day/Night process:
 	--if time.count >= 1 then
@@ -244,6 +271,7 @@ function game_draw()
 			g.setColor(1,0,0,0.5)
 			g.rectangle("line", x, y, tileSize, tileSize)
 		end
+		
 		if block_while_transiting == false then
 			renderScene(cam, objects)
 		end
@@ -259,9 +287,18 @@ function game_draw()
 	-- Screen Color and Lights:
 	light_system.draw(cam)
 
+	-- Screen Light/Ambience Effects:
+	if earlyMap == 1 then
+		if time.hour >= 6 and time.hour < 18 then
+			day_atmosphere()
+		else
+			night_atmosphere()
+		end
+	end
+
 	if dispositive == "android" then
 		if inventory_window == false then
-			g.setColor(1,1,1)
+			g.setColor(1,1,1,0.8)
 			g.circle("line", toutch_buttons.movement.x, toutch_buttons.movement.y, toutch_buttons.movement.rad)
 			g.circle("fill", toutch_buttons.movement.dx, toutch_buttons.movement.dy, toutch_buttons.movement.rad/3)
 
@@ -279,6 +316,8 @@ function game_draw()
 
 	-- System messages:
 	if message.color[4] > 0 then
+		--g.setColor(0,0,0,message.color[4])
+		--g.rectangle("fill", zoom*2, g.getHeight() - (zoom*6), (#message.text*2.2)*zoom, zoom*5)
 		g.setColor(message.color)
 		g.print(message.text, zoom*2, g.getHeight() - (zoom*6), 0, zoom/3, zoom/3)
 	end
@@ -298,6 +337,7 @@ function game_keypressed(key)
 			relativeMode = true
 			m.setRelativeMode(relativeMode)
 		end
+		m.setPosition(g.getWidth()/2, g.getHeight()/2)
 	end
 
 	if key == "tab" then

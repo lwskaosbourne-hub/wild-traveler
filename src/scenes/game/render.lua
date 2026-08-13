@@ -5,7 +5,17 @@ end
 visible_objects = {}
 visible_n = 0
 
+local tree_shadow = g.newImage("assets/tree_shadow.png")
+local grass_shadow = g.newImage("assets/grass_shadow.png")
+local grass_shadow_quad = g.newQuad(0, 0, grass_shadow:getWidth()/2, grass_shadow:getHeight(), grass_shadow:getDimensions())
+
 function renderUpdate(cam, objects)
+    --if grass.anim_position == 1 then
+    --    grass_shadow_quad:setViewport(grass_shadow:getWidth()/2, 0, grass_shadow:getWidth()/2, grass_shadow:getHeight(), grass_shadow:getDimensions())
+    --elseif grass.anim_position == 3 then
+    --    grass_shadow_quad:setViewport(0, 0, grass_shadow:getWidth()/2, grass_shadow:getHeight(), grass_shadow:getDimensions())
+    --end
+
     local visible_count = 0
     local cam_x, cam_y = cam:getPosition() 
     
@@ -47,8 +57,6 @@ function renderUpdate(cam, objects)
     visible_n = visible_count
 end
 
-local tree_shadow = g.newImage("assets/tree_shadow.png")
-
 function renderScene(cam)
     -- OTIMIZAÇÃO 2b: Usamos 'visible_n' em vez de '#visible_objects' para garantir exatidão
     for i = 1, visible_n do
@@ -85,6 +93,20 @@ function renderScene(cam)
 
                 g.setBlendMode("alpha")
             end
+            
+            --if obj.type == "grass" then
+            --    g.setBlendMode("alpha", "premultiplied")
+--
+            --    if time.hour >= 6 and time.hour < 12 then
+            --        g.setColor(1, 1, 1, ((time.hour + (time.minutes*0.9/(time.minutes_max-1)))-6)/6)
+            --        g.draw(grass_shadow, grass_shadow_quad, obj.x, obj.y, 0, 1, 1, grass_shadow:getWidth()/4, grass_shadow:getHeight()/2)
+            --    elseif time.hour >= 12 and time.hour < 18 then
+            --        g.setColor(1, 1, 1, 1-((time.hour + (time.minutes*0.9/(time.minutes_max-1)))-12)/6)
+            --        g.draw(grass_shadow, grass_shadow_quad, obj.x, obj.y, 0, 1, 1, grass_shadow:getWidth()/4, grass_shadow:getHeight()/2)
+            --    end
+--
+            --    g.setBlendMode("alpha")
+            --end
             
             obj.src:draw(obj.x, obj.y, obj.z, obj.rad)
 
